@@ -1,0 +1,21 @@
+# Local source pages / downloaded calendar data
+*_page.html
+*_page_files/
+calendarsync.ics
+
+# Generated calendar/output files
+*.ics
+*.csv
+
+# Old test/experimental scripts
+test_fixtures.py
+create_calendar.py
+boys_calendar.py
+boys_sports.py
+boys_sports_v2.py
+boys_sports_v3.py
+boys_sports_v4.py
+
+# Python cache
+__pycache__/
+*.pyc
