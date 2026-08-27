@@ -19,3 +19,4 @@ boys_sports_v4.py
 # Python cache
 __pycache__/
 *.pyc
+!calendar.ics
