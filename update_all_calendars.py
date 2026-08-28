@@ -6,7 +6,6 @@ from datetime import datetime, timezone, timedelta
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 import re
-import time
 
 
 # ============================================================
@@ -31,7 +30,7 @@ OUTPUT_COMBINED = Path("calendar.ics")
 
 
 # ============================================================
-# GENERAL ICS HELPERS
+# ICS HELPERS
 # ============================================================
 
 def escape_ics(value):
@@ -46,14 +45,8 @@ def escape_ics(value):
     )
 
 
-def ics_event(
-    uid,
-    start,
-    end,
-    summary,
-    location="",
-    description=""
-):
+def ics_event(uid, start, end, summary, location="", description=""):
+
     lines = [
         "BEGIN:VEVENT",
         f"UID:{uid}",
@@ -78,13 +71,32 @@ def ics_event(
     return lines
 
 
-def create_calendar(events):
+def create_calendar(events, calendar_name, description=""):
+
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
         "PRODID:-//Boys Sports Calendar//EN",
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
+
+        # ----------------------------------------------------
+        # Proper calendar name
+        # ----------------------------------------------------
+
+        f"X-WR-CALNAME:{escape_ics(calendar_name)}",
+
+        # ----------------------------------------------------
+        # Description shown by some calendar apps
+        # ----------------------------------------------------
+
+        f"X-WR-CALDESC:{escape_ics(description)}",
+
+        # ----------------------------------------------------
+        # Calendar timezone
+        # ----------------------------------------------------
+
+        "X-WR-TIMEZONE:Europe/London",
     ]
 
     for event in events:
@@ -95,14 +107,21 @@ def create_calendar(events):
     return "\r\n".join(lines) + "\r\n"
 
 
-def write_calendar(path, events):
+def write_calendar(path, events, calendar_name, description=""):
+
     path.write_text(
-        create_calendar(events),
+        create_calendar(
+            events,
+            calendar_name,
+            description
+        ),
         encoding="utf-8"
     )
 
     print(
-        f"Wrote {path}: {len(events)} events"
+        f"Wrote {path}: "
+        f"{len(events)} events "
+        f"({calendar_name})"
     )
 
 
@@ -203,9 +222,7 @@ def parse_fulltime_fixtures(html):
         for i, text in enumerate(cell_texts):
 
             if text.lower() == "v":
-
                 v_index = i
-
                 break
 
         if v_index is None:
@@ -248,7 +265,6 @@ def parse_fulltime_fixtures(html):
             }:
 
                 competition = text
-
                 break
 
         # ----------------------------------------------------
@@ -272,7 +288,6 @@ def parse_fulltime_fixtures(html):
             if match:
 
                 fixture_id = match.group(1)
-
                 break
 
         # ----------------------------------------------------
@@ -292,7 +307,6 @@ def parse_fulltime_fixtures(html):
 
                 boy = boy_name
                 target_team = team_name
-
                 break
 
         if not boy:
@@ -361,10 +375,7 @@ def get_fulltime_fixtures():
         )
 
         # ----------------------------------------------------
-        # Full-Time is dynamic.
-        #
-        # We deliberately poll rather than relying on one
-        # fixed timeout.
+        # Poll for Full-Time data
         # ----------------------------------------------------
 
         found = False
@@ -412,11 +423,10 @@ def get_fulltime_fixtures():
                 )
 
                 found = True
-
                 break
 
         # ----------------------------------------------------
-        # If first attempt failed, reload once.
+        # Reload if necessary
         # ----------------------------------------------------
 
         if not found:
@@ -465,16 +475,14 @@ def get_fulltime_fixtures():
                     )
 
                     found = True
-
                     break
 
         # ----------------------------------------------------
-        # Save diagnostics if needed.
+        # Diagnostics if failed
         # ----------------------------------------------------
 
         if not found:
 
-            print()
             print(
                 "ERROR: Full-Time did not load."
             )
@@ -502,12 +510,7 @@ def get_fulltime_fixtures():
             )
 
         # ----------------------------------------------------
-        # Get the table.
-        #
-        # IMPORTANT:
-        # We use ATTACHED rather than VISIBLE.
-        # This avoids a false timeout if the table exists
-        # but its CSS visibility is unusual in Chromium/Xvfb.
+        # Find table
         # ----------------------------------------------------
 
         print()
@@ -525,18 +528,6 @@ def get_fulltime_fixtures():
         print(
             "Fixture table attached."
         )
-
-        table_count = page.locator(
-            "table"
-        ).count()
-
-        print(
-            f"Tables found: {table_count}"
-        )
-
-        # ----------------------------------------------------
-        # Capture the largest table.
-        # ----------------------------------------------------
 
         tables = page.locator(
             "table"
@@ -583,10 +574,6 @@ def get_fulltime_fixtures():
             "characters"
         )
 
-        # ----------------------------------------------------
-        # Save diagnostic screenshot.
-        # ----------------------------------------------------
-
         page.screenshot(
             path="fulltime-production.png",
             full_page=True
@@ -595,7 +582,7 @@ def get_fulltime_fixtures():
         browser.close()
 
     # --------------------------------------------------------
-    # Parse outside browser
+    # Parse table
     # --------------------------------------------------------
 
     fixtures = parse_fulltime_fixtures(
@@ -619,7 +606,7 @@ def get_fulltime_fixtures():
 
 
 # ============================================================
-# FULL-TIME → ICS EVENTS
+# FULL-TIME → ICS
 # ============================================================
 
 def create_fulltime_events(fixtures):
@@ -640,11 +627,8 @@ def create_fulltime_events(fixtures):
         boy = fixture["boy"]
 
         if boy == "Harry":
-
             feed_name = "U9 Bluestars"
-
         else:
-
             feed_name = "U12 Bluestars"
 
         opponent = (
@@ -653,14 +637,9 @@ def create_fulltime_events(fixtures):
             else fixture["home"]
         )
 
-        home_away = (
-            "HOME"
-            if fixture["home_away"] == "HOME"
-            else "AWAY"
-        )
+        home_away = fixture["home_away"]
 
         summary = (
-            f"{feed_name}: "
             f"{home_away} v {opponent}"
         )
 
@@ -880,10 +859,7 @@ def get_lucas_events():
             "U14"
         )
 
-        title = (
-            f"U14s LRGS Rugby: "
-            f"{clean}"
-        )
+        title = clean
 
         description = (
             "Source: LRGS Rugby"
@@ -948,7 +924,7 @@ def main():
     print("=" * 70)
 
     # --------------------------------------------------------
-    # FULL-TIME
+    # Full-Time
     # --------------------------------------------------------
 
     fulltime = get_fulltime_fixtures()
@@ -966,7 +942,7 @@ def main():
     ]
 
     # --------------------------------------------------------
-    # SAFETY CHECKS
+    # Safety checks
     # --------------------------------------------------------
 
     if not harry_fixtures:
@@ -984,7 +960,7 @@ def main():
         )
 
     # --------------------------------------------------------
-    # CREATE EVENTS
+    # Create events
     # --------------------------------------------------------
 
     harry_events = create_fulltime_events(
@@ -998,26 +974,32 @@ def main():
     lucas_events = get_lucas_events()
 
     # --------------------------------------------------------
-    # WRITE INDIVIDUAL FEEDS
+    # Write individual feeds
     # --------------------------------------------------------
 
     write_calendar(
-        OUTPUT_HARRY,
-        harry_events
+        OUTPUT_LUCAS,
+        lucas_events,
+        "U14s LRGS Rugby",
+        "Lucas U14 rugby fixtures from LRGS"
     )
 
     write_calendar(
         OUTPUT_THOMAS,
-        thomas_events
+        thomas_events,
+        "U12 Bluestars",
+        "Thomas U12 Heysham Blue Star fixtures"
     )
 
     write_calendar(
-        OUTPUT_LUCAS,
-        lucas_events
+        OUTPUT_HARRY,
+        harry_events,
+        "U9 Bluestars",
+        "Harry U9 Heysham Blue Star fixtures"
     )
 
     # --------------------------------------------------------
-    # COMBINED FEED
+    # Combined personal feed
     # --------------------------------------------------------
 
     combined = (
@@ -1028,11 +1010,13 @@ def main():
 
     write_calendar(
         OUTPUT_COMBINED,
-        combined
+        combined,
+        "Boys Sports Calendar",
+        "Lucas, Thomas and Harry sports fixtures"
     )
 
     # --------------------------------------------------------
-    # SUMMARY
+    # Summary
     # --------------------------------------------------------
 
     print()
