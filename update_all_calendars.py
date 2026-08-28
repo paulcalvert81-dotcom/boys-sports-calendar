@@ -6,6 +6,7 @@ from datetime import datetime, timezone, timedelta
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 import re
+import time
 
 
 # ============================================================
@@ -106,19 +107,13 @@ def write_calendar(path, events):
 
 
 # ============================================================
-# FULL-TIME
+# FULL-TIME DATE PARSING
 # ============================================================
 
-TARGET_TEAMS = {
-    "Heysham Blue Star U9": "Harry",
-    "Heysham Blue Star U12": "Thomas",
-}
-
-
 def parse_fulltime_date(text):
+
     text = " ".join(text.split())
 
-    # Full-Time uses "Sept"; Python expects "Sep"
     text = re.sub(
         r"\bSept\b",
         "Sep",
@@ -133,6 +128,16 @@ def parse_fulltime_date(text):
 
     except ValueError:
         return None
+
+
+# ============================================================
+# FULL-TIME HTML PARSER
+# ============================================================
+
+TARGET_TEAMS = {
+    "Heysham Blue Star U9": "Harry",
+    "Heysham Blue Star U12": "Thomas",
+}
 
 
 def parse_fulltime_fixtures(html):
@@ -190,7 +195,7 @@ def parse_fulltime_fixtures(html):
         ]
 
         # ----------------------------------------------------
-        # HOME / AWAY
+        # FIND "v"
         # ----------------------------------------------------
 
         v_index = None
@@ -271,7 +276,7 @@ def parse_fulltime_fixtures(html):
                 break
 
         # ----------------------------------------------------
-        # FIND BOY
+        # IDENTIFY HARRY / THOMAS
         # ----------------------------------------------------
 
         boy = None
@@ -313,10 +318,16 @@ def parse_fulltime_fixtures(html):
     return fixtures
 
 
+# ============================================================
+# FULL-TIME BROWSER
+# ============================================================
+
 def get_fulltime_fixtures():
 
     print()
-    print("Launching Chromium...")
+    print("=" * 70)
+    print("FULL-TIME BROWSER")
+    print("=" * 70)
 
     with sync_playwright() as p:
 
@@ -324,12 +335,19 @@ def get_fulltime_fixtures():
             headless=False
         )
 
-        page = browser.new_page()
-
-        print(
-            "Opening Full-Time page:"
+        page = browser.new_page(
+            viewport={
+                "width": 1280,
+                "height": 1000
+            }
         )
 
+        page.set_default_timeout(
+            10000
+        )
+
+        print()
+        print("Opening:")
         print(FULLTIME_URL)
 
         page.goto(
@@ -339,53 +357,269 @@ def get_fulltime_fixtures():
         )
 
         print(
-            "Waiting for Full-Time..."
+            "Initial page load complete."
         )
 
-        page.wait_for_timeout(
-            15000
-        )
+        # ----------------------------------------------------
+        # Full-Time is dynamic.
+        #
+        # We deliberately poll rather than relying on one
+        # fixed timeout.
+        # ----------------------------------------------------
 
+        found = False
+
+        for attempt in range(1, 13):
+
+            print(
+                f"Waiting for Full-Time data "
+                f"(attempt {attempt}/12)..."
+            )
+
+            page.wait_for_timeout(
+                5000
+            )
+
+            body_text = page.locator(
+                "body"
+            ).inner_text(
+                timeout=10000
+            )
+
+            table_count = page.locator(
+                "table"
+            ).count()
+
+            print(
+                f"  tables in DOM: {table_count}"
+            )
+
+            print(
+                f"  page text length: "
+                f"{len(body_text)}"
+            )
+
+            if (
+                "Heysham Blue Star U12"
+                in body_text
+                or
+                "Heysham Blue Star U9"
+                in body_text
+            ):
+
+                print(
+                    "  Full-Time fixture text found."
+                )
+
+                found = True
+
+                break
+
+        # ----------------------------------------------------
+        # If first attempt failed, reload once.
+        # ----------------------------------------------------
+
+        if not found:
+
+            print()
+            print(
+                "Full-Time did not appear."
+            )
+
+            print(
+                "Reloading page and trying again..."
+            )
+
+            page.reload(
+                wait_until="load",
+                timeout=60000
+            )
+
+            for attempt in range(1, 7):
+
+                print(
+                    f"Retry {attempt}/6..."
+                )
+
+                page.wait_for_timeout(
+                    5000
+                )
+
+                body_text = page.locator(
+                    "body"
+                ).inner_text(
+                    timeout=10000
+                )
+
+                if (
+                    "Heysham Blue Star U12"
+                    in body_text
+                    or
+                    "Heysham Blue Star U9"
+                    in body_text
+                ):
+
+                    print(
+                        "Full-Time fixture text found "
+                        "after reload."
+                    )
+
+                    found = True
+
+                    break
+
+        # ----------------------------------------------------
+        # Save diagnostics if needed.
+        # ----------------------------------------------------
+
+        if not found:
+
+            print()
+            print(
+                "ERROR: Full-Time did not load."
+            )
+
+            page.screenshot(
+                path="fulltime-failure.png",
+                full_page=True
+            )
+
+            Path(
+                "fulltime-failure.txt"
+            ).write_text(
+                page.locator(
+                    "body"
+                ).inner_text(
+                    timeout=10000
+                ),
+                encoding="utf-8"
+            )
+
+            browser.close()
+
+            raise RuntimeError(
+                "Full-Time fixture data did not load"
+            )
+
+        # ----------------------------------------------------
+        # Get the table.
+        #
+        # IMPORTANT:
+        # We use ATTACHED rather than VISIBLE.
+        # This avoids a false timeout if the table exists
+        # but its CSS visibility is unusual in Chromium/Xvfb.
+        # ----------------------------------------------------
+
+        print()
         print(
             "Waiting for fixture table..."
         )
 
-        table = page.locator(
+        page.locator(
             "table"
-        ).first
-
-        table.wait_for(
-            state="visible",
+        ).first.wait_for(
+            state="attached",
             timeout=30000
         )
 
-        html = table.evaluate(
-            "(element) => element.outerHTML"
+        print(
+            "Fixture table attached."
         )
 
+        table_count = page.locator(
+            "table"
+        ).count()
+
         print(
-            "Fixture table captured:",
-            len(html),
+            f"Tables found: {table_count}"
+        )
+
+        # ----------------------------------------------------
+        # Capture the largest table.
+        # ----------------------------------------------------
+
+        tables = page.locator(
+            "table"
+        )
+
+        best_html = ""
+
+        for i in range(
+            tables.count()
+        ):
+
+            try:
+
+                html = tables.nth(i).evaluate(
+                    "(element) => element.outerHTML"
+                )
+
+                if len(html) > len(
+                    best_html
+                ):
+
+                    best_html = html
+
+            except Exception:
+                pass
+
+        if not best_html:
+
+            page.screenshot(
+                path="fulltime-failure.png",
+                full_page=True
+            )
+
+            browser.close()
+
+            raise RuntimeError(
+                "Full-Time table exists but "
+                "could not be captured"
+            )
+
+        print(
+            "Captured fixture table:",
+            len(best_html),
             "characters"
+        )
+
+        # ----------------------------------------------------
+        # Save diagnostic screenshot.
+        # ----------------------------------------------------
+
+        page.screenshot(
+            path="fulltime-production.png",
+            full_page=True
         )
 
         browser.close()
 
+    # --------------------------------------------------------
+    # Parse outside browser
+    # --------------------------------------------------------
+
     fixtures = parse_fulltime_fixtures(
-        html
+        best_html
     )
 
     if not fixtures:
 
         raise RuntimeError(
-            "No Harry or Thomas fixtures found"
+            "Full-Time table captured but "
+            "no Harry or Thomas fixtures found"
         )
+
+    print()
+    print(
+        f"Harry + Thomas fixtures found: "
+        f"{len(fixtures)}"
+    )
 
     return fixtures
 
 
 # ============================================================
-# FULL-TIME → ICS
+# FULL-TIME → ICS EVENTS
 # ============================================================
 
 def create_fulltime_events(fixtures):
@@ -413,21 +647,26 @@ def create_fulltime_events(fixtures):
 
             feed_name = "U12 Bluestars"
 
-        # Clean title
         opponent = (
             fixture["away"]
             if fixture["home_away"] == "HOME"
             else fixture["home"]
         )
 
+        home_away = (
+            "HOME"
+            if fixture["home_away"] == "HOME"
+            else "AWAY"
+        )
+
         summary = (
             f"{feed_name}: "
-            f"{'HOME' if fixture['home_away'] == 'HOME' else 'AWAY'} "
-            f"v {opponent}"
+            f"{home_away} v {opponent}"
         )
 
         description_lines = [
-            f"{fixture['home']} v {fixture['away']}"
+            f"{fixture['home']} v "
+            f"{fixture['away']}"
         ]
 
         if fixture["competition"]:
@@ -441,9 +680,9 @@ def create_fulltime_events(fixtures):
             "Source: FA Full-Time"
         )
 
-        # Prefer fixture ID as UID.
-        # Fall back to date/teams for fixtures
-        # where Full-Time provides no ID.
+        # ----------------------------------------------------
+        # Stable UID
+        # ----------------------------------------------------
 
         if fixture["fixture_id"]:
 
@@ -488,7 +727,7 @@ def create_fulltime_events(fixtures):
 
 
 # ============================================================
-# LUCAS / LRGS
+# LRGS / LUCAS
 # ============================================================
 
 def get_prop(block, name):
@@ -537,8 +776,12 @@ def parse_lrgs_datetime(value):
 def get_lucas_events():
 
     print()
+    print("=" * 70)
+    print("LUCAS / LRGS")
+    print("=" * 70)
+
     print(
-        "Downloading Lucas LRGS feed..."
+        "Downloading LRGS feed..."
     )
 
     request = Request(
@@ -705,20 +948,10 @@ def main():
     print("=" * 70)
 
     # --------------------------------------------------------
-    # Get Full-Time
+    # FULL-TIME
     # --------------------------------------------------------
 
     fulltime = get_fulltime_fixtures()
-
-    print()
-    print(
-        f"Full-Time fixtures found: "
-        f"{len(fulltime)}"
-    )
-
-    # --------------------------------------------------------
-    # Split Harry / Thomas
-    # --------------------------------------------------------
 
     harry_fixtures = [
         fixture
@@ -732,7 +965,10 @@ def main():
         if fixture["boy"] == "Thomas"
     ]
 
-    # Safety checks
+    # --------------------------------------------------------
+    # SAFETY CHECKS
+    # --------------------------------------------------------
+
     if not harry_fixtures:
 
         raise RuntimeError(
@@ -748,7 +984,7 @@ def main():
         )
 
     # --------------------------------------------------------
-    # Create events
+    # CREATE EVENTS
     # --------------------------------------------------------
 
     harry_events = create_fulltime_events(
@@ -762,7 +998,7 @@ def main():
     lucas_events = get_lucas_events()
 
     # --------------------------------------------------------
-    # Write individual calendars
+    # WRITE INDIVIDUAL FEEDS
     # --------------------------------------------------------
 
     write_calendar(
@@ -781,7 +1017,7 @@ def main():
     )
 
     # --------------------------------------------------------
-    # Combined calendar
+    # COMBINED FEED
     # --------------------------------------------------------
 
     combined = (
@@ -796,7 +1032,7 @@ def main():
     )
 
     # --------------------------------------------------------
-    # Summary
+    # SUMMARY
     # --------------------------------------------------------
 
     print()
@@ -805,19 +1041,23 @@ def main():
     print("=" * 70)
 
     print(
-        f"U14s LRGS Rugby : {len(lucas_events)}"
+        f"U14s LRGS Rugby : "
+        f"{len(lucas_events)}"
     )
 
     print(
-        f"U12 Bluestars   : {len(thomas_events)}"
+        f"U12 Bluestars   : "
+        f"{len(thomas_events)}"
     )
 
     print(
-        f"U9 Bluestars    : {len(harry_events)}"
+        f"U9 Bluestars    : "
+        f"{len(harry_events)}"
     )
 
     print(
-        f"Combined        : {len(combined)}"
+        f"Combined        : "
+        f"{len(combined)}"
     )
 
     print("=" * 70)
