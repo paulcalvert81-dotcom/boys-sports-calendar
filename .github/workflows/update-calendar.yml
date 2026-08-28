@@ -14,68 +14,31 @@ jobs:
 
     steps:
 
-      # ------------------------------------------------------
-      # Get repository
-      # ------------------------------------------------------
-
       - name: Check out repository
         uses: actions/checkout@v4
-
-
-      # ------------------------------------------------------
-      # Python
-      # ------------------------------------------------------
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-
-      # ------------------------------------------------------
-      # Python packages
-      # ------------------------------------------------------
-
       - name: Install Python packages
         run: |
           python -m pip install --upgrade pip
           python -m pip install playwright beautifulsoup4
 
-
-      # ------------------------------------------------------
-      # Chromium
-      # ------------------------------------------------------
-
       - name: Install Chromium
         run: |
           python -m playwright install --with-deps chromium
-
-
-      # ------------------------------------------------------
-      # X virtual display
-      #
-      # Full-Time works with headed Chromium, so we run
-      # Chromium headed inside Xvfb on the GitHub runner.
-      # ------------------------------------------------------
 
       - name: Install Xvfb
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb
 
-
-      # ------------------------------------------------------
-      # Update all four calendars
-      # ------------------------------------------------------
-
       - name: Update Boys Sports calendars
         run: |
           xvfb-run -a python update_all_calendars.py
-
-
-      # ------------------------------------------------------
-      # Show what was created
-      # ------------------------------------------------------
 
       - name: Show generated calendars
         run: |
@@ -94,21 +57,17 @@ jobs:
           echo -n "U9 Bluestars:    "
           grep -c "^BEGIN:VEVENT" u9-bluestars.ics || true
 
-          echo -n "Combined:         "
+          echo -n "Combined:        "
           grep -c "^BEGIN:VEVENT" calendar.ics || true
-
-
-      # ------------------------------------------------------
-      # Commit the calendars
-      # ------------------------------------------------------
 
       - name: Commit updated calendars
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add \
-            calendar.ics \
+          git add calendar.ics
+
+          git add -f \
             u14s-lrgs-rugby.ics \
             u12-bluestars.ics \
             u9-bluestars.ics
