@@ -45,8 +45,14 @@ def escape_ics(value):
     )
 
 
-def ics_event(uid, start, end, summary, location="", description=""):
-
+def ics_timed_event(
+    uid,
+    start,
+    end,
+    summary,
+    location="",
+    description=""
+):
     lines = [
         "BEGIN:VEVENT",
         f"UID:{uid}",
@@ -71,31 +77,52 @@ def ics_event(uid, start, end, summary, location="", description=""):
     return lines
 
 
-def create_calendar(events, calendar_name, description=""):
+def ics_allday_event(
+    uid,
+    date_value,
+    summary,
+    location="",
+    description=""
+):
+    next_day = date_value + timedelta(days=1)
 
+    lines = [
+        "BEGIN:VEVENT",
+        f"UID:{uid}",
+        f"DTSTAMP:{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}",
+        f"DTSTART;VALUE=DATE:{date_value.strftime('%Y%m%d')}",
+        f"DTEND;VALUE=DATE:{next_day.strftime('%Y%m%d')}",
+        f"SUMMARY:{escape_ics(summary)}",
+    ]
+
+    if location:
+        lines.append(
+            f"LOCATION:{escape_ics(location)}"
+        )
+
+    if description:
+        lines.append(
+            f"DESCRIPTION:{escape_ics(description)}"
+        )
+
+    lines.append("END:VEVENT")
+
+    return lines
+
+
+def create_calendar(
+    events,
+    calendar_name,
+    description=""
+):
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
         "PRODID:-//Boys Sports Calendar//EN",
         "CALSCALE:GREGORIAN",
         "METHOD:PUBLISH",
-
-        # ----------------------------------------------------
-        # Proper calendar name
-        # ----------------------------------------------------
-
         f"X-WR-CALNAME:{escape_ics(calendar_name)}",
-
-        # ----------------------------------------------------
-        # Description shown by some calendar apps
-        # ----------------------------------------------------
-
         f"X-WR-CALDESC:{escape_ics(description)}",
-
-        # ----------------------------------------------------
-        # Calendar timezone
-        # ----------------------------------------------------
-
         "X-WR-TIMEZONE:Europe/London",
     ]
 
@@ -107,8 +134,12 @@ def create_calendar(events, calendar_name, description=""):
     return "\r\n".join(lines) + "\r\n"
 
 
-def write_calendar(path, events, calendar_name, description=""):
-
+def write_calendar(
+    path,
+    events,
+    calendar_name,
+    description=""
+):
     path.write_text(
         create_calendar(
             events,
@@ -120,13 +151,12 @@ def write_calendar(path, events, calendar_name, description=""):
 
     print(
         f"Wrote {path}: "
-        f"{len(events)} events "
-        f"({calendar_name})"
+        f"{len(events)} events ({calendar_name})"
     )
 
 
 # ============================================================
-# FULL-TIME DATE PARSING
+# FULL-TIME
 # ============================================================
 
 def parse_fulltime_date(text):
@@ -149,10 +179,6 @@ def parse_fulltime_date(text):
         return None
 
 
-# ============================================================
-# FULL-TIME HTML PARSER
-# ============================================================
-
 TARGET_TEAMS = {
     "Heysham Blue Star U9": "Harry",
     "Heysham Blue Star U12": "Thomas",
@@ -174,7 +200,6 @@ def parse_fulltime_fixtures(html):
         )
 
     fixtures = []
-
     current_datetime = None
 
     for row in table.find_all("tr"):
@@ -184,10 +209,7 @@ def parse_fulltime_fixtures(html):
         if not cells:
             continue
 
-        # ----------------------------------------------------
-        # DATE / TIME ROW
-        # ----------------------------------------------------
-
+        # Date/time separator row
         if len(cells) == 1:
 
             text = cells[0].get_text(
@@ -195,7 +217,9 @@ def parse_fulltime_fixtures(html):
                 strip=True
             )
 
-            parsed = parse_fulltime_date(text)
+            parsed = parse_fulltime_date(
+                text
+            )
 
             if parsed:
                 current_datetime = parsed
@@ -213,13 +237,11 @@ def parse_fulltime_fixtures(html):
             for cell in cells
         ]
 
-        # ----------------------------------------------------
-        # FIND "v"
-        # ----------------------------------------------------
-
         v_index = None
 
-        for i, text in enumerate(cell_texts):
+        for i, text in enumerate(
+            cell_texts
+        ):
 
             if text.lower() == "v":
                 v_index = i
@@ -228,10 +250,11 @@ def parse_fulltime_fixtures(html):
         if v_index is None:
             continue
 
-        if (
-            v_index < 1
-            or
-            v_index + 1 >= len(cell_texts)
+        if v_index < 1:
+            continue
+
+        if v_index + 1 >= len(
+            cell_texts
         ):
             continue
 
@@ -245,15 +268,12 @@ def parse_fulltime_fixtures(html):
 
         venue = ""
 
-        if v_index + 2 < len(cell_texts):
-
+        if v_index + 2 < len(
+            cell_texts
+        ):
             venue = cell_texts[
                 v_index + 2
             ]
-
-        # ----------------------------------------------------
-        # COMPETITION
-        # ----------------------------------------------------
 
         competition = ""
 
@@ -263,17 +283,14 @@ def parse_fulltime_fixtures(html):
                 "CC",
                 "ACUP"
             }:
-
                 competition = text
                 break
 
-        # ----------------------------------------------------
-        # FIXTURE ID
-        # ----------------------------------------------------
-
         fixture_id = ""
 
-        for link in row.find_all("a"):
+        for link in row.find_all(
+            "a"
+        ):
 
             href = link.get(
                 "href",
@@ -286,18 +303,15 @@ def parse_fulltime_fixtures(html):
             )
 
             if match:
-
                 fixture_id = match.group(1)
                 break
-
-        # ----------------------------------------------------
-        # IDENTIFY HARRY / THOMAS
-        # ----------------------------------------------------
 
         boy = None
         target_team = None
 
-        for team_name, boy_name in TARGET_TEAMS.items():
+        for team_name, boy_name in (
+            TARGET_TEAMS.items()
+        ):
 
             if (
                 home == team_name
@@ -332,10 +346,6 @@ def parse_fulltime_fixtures(html):
     return fixtures
 
 
-# ============================================================
-# FULL-TIME BROWSER
-# ============================================================
-
 def get_fulltime_fixtures():
 
     print()
@@ -346,67 +356,85 @@ def get_fulltime_fixtures():
     with sync_playwright() as p:
 
         browser = p.chromium.launch(
-            headless=False
+            headless=True
         )
 
-        page = browser.new_page(
+        context = browser.new_context(
             viewport={
                 "width": 1280,
-                "height": 1000
-            }
+                "height": 1200
+            },
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 "
+                "(KHTML, like Gecko) "
+                "Chrome/151.0 Safari/537.36"
+            )
         )
 
+        page = context.new_page()
+
         page.set_default_timeout(
-            10000
+            15000
         )
 
         print()
         print("Opening:")
         print(FULLTIME_URL)
 
-        page.goto(
-            FULLTIME_URL,
-            wait_until="load",
-            timeout=60000
-        )
+        try:
+
+            page.goto(
+                FULLTIME_URL,
+                wait_until="domcontentloaded",
+                timeout=90000
+            )
+
+        except Exception as e:
+
+            print(
+                "Initial navigation warning:",
+                e
+            )
 
         print(
-            "Initial page load complete."
+            "Initial page navigation complete."
         )
-
-        # ----------------------------------------------------
-        # Poll for Full-Time data
-        # ----------------------------------------------------
 
         found = False
 
-        for attempt in range(1, 13):
+        for attempt in range(
+            1,
+            25
+        ):
 
             print(
-                f"Waiting for Full-Time data "
-                f"(attempt {attempt}/12)..."
+                f"Checking Full-Time "
+                f"(attempt {attempt}/24)..."
             )
 
-            page.wait_for_timeout(
-                5000
-            )
+            try:
 
-            body_text = page.locator(
-                "body"
-            ).inner_text(
-                timeout=10000
-            )
+                body_text = page.locator(
+                    "body"
+                ).inner_text(
+                    timeout=15000
+                )
+
+            except Exception:
+
+                body_text = ""
 
             table_count = page.locator(
                 "table"
             ).count()
 
             print(
-                f"  tables in DOM: {table_count}"
+                f"  Tables: {table_count}"
             )
 
             print(
-                f"  page text length: "
+                f"  Text length: "
                 f"{len(body_text)}"
             )
 
@@ -419,46 +447,70 @@ def get_fulltime_fixtures():
             ):
 
                 print(
-                    "  Full-Time fixture text found."
+                    "  Full-Time fixture "
+                    "data found."
                 )
 
                 found = True
                 break
 
-        # ----------------------------------------------------
-        # Reload if necessary
-        # ----------------------------------------------------
+            page.wait_for_timeout(
+                5000
+            )
 
         if not found:
 
-            print()
             print(
-                "Full-Time did not appear."
+                "Full-Time has not loaded."
             )
 
-            print(
-                "Reloading page and trying again..."
-            )
+            try:
 
-            page.reload(
-                wait_until="load",
-                timeout=60000
-            )
+                page.reload(
+                    wait_until="domcontentloaded",
+                    timeout=90000
+                )
 
-            for attempt in range(1, 7):
+            except Exception as e:
 
                 print(
-                    f"Retry {attempt}/6..."
+                    "Reload warning:",
+                    e
+                )
+
+            for attempt in range(
+                1,
+                13
+            ):
+
+                print(
+                    f"Reload attempt "
+                    f"{attempt}/12..."
                 )
 
                 page.wait_for_timeout(
                     5000
                 )
 
-                body_text = page.locator(
-                    "body"
-                ).inner_text(
-                    timeout=10000
+                try:
+
+                    body_text = page.locator(
+                        "body"
+                    ).inner_text(
+                        timeout=15000
+                    )
+
+                except Exception:
+
+                    body_text = ""
+
+                table_count = page.locator(
+                    "table"
+                ).count()
+
+                print(
+                    f"  Tables: {table_count} "
+                    f"Text: {len(body_text)}"
                 )
 
                 if (
@@ -470,101 +522,84 @@ def get_fulltime_fixtures():
                 ):
 
                     print(
-                        "Full-Time fixture text found "
+                        "  Full-Time data found "
                         "after reload."
                     )
 
                     found = True
                     break
 
-        # ----------------------------------------------------
-        # Diagnostics if failed
-        # ----------------------------------------------------
-
         if not found:
-
-            print(
-                "ERROR: Full-Time did not load."
-            )
-
-            page.screenshot(
-                path="fulltime-failure.png",
-                full_page=True
-            )
-
-            Path(
-                "fulltime-failure.txt"
-            ).write_text(
-                page.locator(
-                    "body"
-                ).inner_text(
-                    timeout=10000
-                ),
-                encoding="utf-8"
-            )
 
             browser.close()
 
             raise RuntimeError(
-                "Full-Time fixture data did not load"
+                "Full-Time fixture data "
+                "did not load"
             )
-
-        # ----------------------------------------------------
-        # Find table
-        # ----------------------------------------------------
 
         print()
         print(
-            "Waiting for fixture table..."
-        )
-
-        page.locator(
-            "table"
-        ).first.wait_for(
-            state="attached",
-            timeout=30000
+            "Fixture data found."
         )
 
         print(
-            "Fixture table attached."
-        )
-
-        tables = page.locator(
-            "table"
+            "Looking for fixture table..."
         )
 
         best_html = ""
 
-        for i in range(
-            tables.count()
+        for attempt in range(
+            1,
+            13
         ):
 
-            try:
+            tables = page.locator(
+                "table"
+            )
 
-                html = tables.nth(i).evaluate(
-                    "(element) => element.outerHTML"
+            count = tables.count()
+
+            print(
+                f"Table scan {attempt}/12: "
+                f"{count} table(s)"
+            )
+
+            for i in range(count):
+
+                try:
+
+                    html = tables.nth(i).evaluate(
+                        "(element) => element.outerHTML"
+                    )
+
+                    if len(html) > len(
+                        best_html
+                    ):
+                        best_html = html
+
+                except Exception:
+                    pass
+
+            if len(best_html) > 5000:
+
+                print(
+                    "Usable fixture table "
+                    "captured."
                 )
 
-                if len(html) > len(
-                    best_html
-                ):
+                break
 
-                    best_html = html
-
-            except Exception:
-                pass
+            page.wait_for_timeout(
+                2500
+            )
 
         if not best_html:
-
-            page.screenshot(
-                path="fulltime-failure.png",
-                full_page=True
-            )
 
             browser.close()
 
             raise RuntimeError(
-                "Full-Time table exists but "
+                "Full-Time table "
                 "could not be captured"
             )
 
@@ -574,16 +609,7 @@ def get_fulltime_fixtures():
             "characters"
         )
 
-        page.screenshot(
-            path="fulltime-production.png",
-            full_page=True
-        )
-
         browser.close()
-
-    # --------------------------------------------------------
-    # Parse table
-    # --------------------------------------------------------
 
     fixtures = parse_fulltime_fixtures(
         best_html
@@ -592,8 +618,8 @@ def get_fulltime_fixtures():
     if not fixtures:
 
         raise RuntimeError(
-            "Full-Time table captured but "
-            "no Harry or Thomas fixtures found"
+            "No Harry or Thomas "
+            "fixtures found"
         )
 
     print()
@@ -605,11 +631,9 @@ def get_fulltime_fixtures():
     return fixtures
 
 
-# ============================================================
-# FULL-TIME → ICS
-# ============================================================
-
-def create_fulltime_events(fixtures):
+def create_fulltime_events(
+    fixtures
+):
 
     events = []
 
@@ -624,20 +648,15 @@ def create_fulltime_events(fixtures):
             minutes=90
         )
 
-        boy = fixture["boy"]
-
-        if boy == "Harry":
-            feed_name = "U9 Bluestars"
-        else:
-            feed_name = "U12 Bluestars"
+        home_away = fixture[
+            "home_away"
+        ]
 
         opponent = (
             fixture["away"]
-            if fixture["home_away"] == "HOME"
+            if home_away == "HOME"
             else fixture["home"]
         )
-
-        home_away = fixture["home_away"]
 
         summary = (
             f"{home_away} v {opponent}"
@@ -659,14 +678,11 @@ def create_fulltime_events(fixtures):
             "Source: FA Full-Time"
         )
 
-        # ----------------------------------------------------
-        # Stable UID
-        # ----------------------------------------------------
-
         if fixture["fixture_id"]:
 
             uid = (
-                f"fulltime-{fixture['fixture_id']}"
+                f"fulltime-"
+                f"{fixture['fixture_id']}"
                 "@boys-sports-calendar"
             )
 
@@ -690,15 +706,15 @@ def create_fulltime_events(fixtures):
             )
 
         events.append(
-            ics_event(
-                uid=uid,
-                start=start,
-                end=end,
-                summary=summary,
-                location=fixture["venue"],
-                description="\n".join(
+            ics_timed_event(
+                uid,
+                start,
+                end,
+                summary,
+                fixture["venue"],
+                "\n".join(
                     description_lines
-                ),
+                )
             )
         )
 
@@ -706,10 +722,32 @@ def create_fulltime_events(fixtures):
 
 
 # ============================================================
-# LRGS / LUCAS
+# LRGS HELPERS
 # ============================================================
 
-def get_prop(block, name):
+def unfold_ics(text):
+
+    text = text.replace(
+        "\r\n",
+        "\n"
+    )
+
+    text = text.replace(
+        "\r",
+        "\n"
+    )
+
+    return re.sub(
+        r"\n[ \t]",
+        "",
+        text
+    )
+
+
+def get_prop(
+    block,
+    name
+):
 
     match = re.search(
         r"(?mi)^"
@@ -733,7 +771,9 @@ def get_prop(block, name):
     )
 
 
-def parse_lrgs_datetime(value):
+def parse_lrgs_datetime(
+    value
+):
 
     match = re.match(
         r"(\d{4})(\d{2})(\d{2})"
@@ -751,6 +791,10 @@ def parse_lrgs_datetime(value):
         )
     )
 
+
+# ============================================================
+# LRGS / LUCAS
+# ============================================================
 
 def get_lucas_events():
 
@@ -781,7 +825,19 @@ def get_lucas_events():
             errors="replace"
         )
 
-    events = []
+    remote = unfold_ics(
+        remote
+    )
+
+    # --------------------------------------------------------
+    # First pass:
+    # find EVERY U14 rugby event in the source.
+    #
+    # This count is deliberately independent of the event
+    # creation logic. It gives us our safety check.
+    # --------------------------------------------------------
+
+    source_u14 = []
 
     for block in re.findall(
         r"BEGIN:VEVENT(.*?)END:VEVENT",
@@ -794,29 +850,22 @@ def get_lucas_events():
             "SUMMARY"
         )
 
-        if "Boys-U14" not in summary:
-            continue
-
-        if not (
-            summary.startswith(
-                "Rugby Union "
-            )
-            or
-            summary.startswith(
-                "Rugby 7S "
-            )
-        ):
-            continue
-
-        squad = re.search(
-            r"Boys-U14([A-Z])\b",
-            summary
+        summary_lower = (
+            summary.lower()
         )
 
-        if squad and squad.group(1) not in {
-            "A",
-            "B"
-        }:
+        if "u14" not in summary_lower:
+            continue
+
+        is_rugby = (
+            "rugby union"
+            in summary_lower
+            or
+            "rugby 7s"
+            in summary_lower
+        )
+
+        if not is_rugby:
             continue
 
         start_value = get_prop(
@@ -829,7 +878,141 @@ def get_lucas_events():
         )
 
         if not start:
-            continue
+            raise RuntimeError(
+                "LRGS contains a U14 Rugby "
+                "event with an unreadable "
+                f"DTSTART:\n{summary}"
+            )
+
+        source_u14.append({
+            "block": block,
+            "summary": summary,
+            "start": start,
+        })
+
+    source_count = len(
+        source_u14
+    )
+
+    print()
+    print(
+        f"LRGS U14 rugby events found: "
+        f"{source_count}"
+    )
+
+    # --------------------------------------------------------
+    # Second pass:
+    # convert every source event.
+    # --------------------------------------------------------
+
+    events = []
+    fixture_info = []
+
+    for source_event in source_u14:
+
+        block = source_event[
+            "block"
+        ]
+
+        summary = source_event[
+            "summary"
+        ]
+
+        start = source_event[
+            "start"
+        ]
+
+        summary_lower = (
+            summary.lower()
+        )
+
+        # ----------------------------------------------------
+        # Clean title
+        # ----------------------------------------------------
+
+        clean = summary
+
+        replacements = [
+            (
+                "Rugby Union Boys-U14A",
+                "U14A"
+            ),
+            (
+                "Rugby Union Boys-U14B",
+                "U14B"
+            ),
+            (
+                "Rugby Union Boys-U14",
+                "U14"
+            ),
+            (
+                "Rugby 7S Boys-U14A",
+                "U14A 7S"
+            ),
+            (
+                "Rugby 7S Boys-U14B",
+                "U14B 7S"
+            ),
+            (
+                "Rugby 7S Boys-U14",
+                "U14 7S"
+            ),
+        ]
+
+        for old, new in replacements:
+
+            clean = clean.replace(
+                old,
+                new
+            )
+
+        clean = clean.replace(
+            "UU14",
+            "U14"
+        )
+
+        clean = " ".join(
+            clean.split()
+        )
+
+        # ----------------------------------------------------
+        # Timing status
+        #
+        # We don't try to guess specific placeholder words.
+        #
+        # A zero-time event is treated as a holding event.
+        # Any explicit TBC wording is also treated as holding.
+        # ----------------------------------------------------
+
+        is_zero_time = (
+            start.hour == 0
+            and
+            start.minute == 0
+            and
+            start.second == 0
+        )
+
+        is_tbc = (
+            "tbc" in summary_lower
+            or
+            "to be confirmed"
+            in summary_lower
+            or
+            is_zero_time
+        )
+
+        if is_tbc:
+
+            if "tbc" not in clean.lower():
+
+                clean = (
+                    clean
+                    + " (Timings TBC)"
+                )
+
+        # ----------------------------------------------------
+        # Venue status
+        # ----------------------------------------------------
 
         location_status = get_prop(
             block,
@@ -844,26 +1027,21 @@ def get_lucas_events():
             location_status
         )
 
-        clean = summary.replace(
-            "Rugby Union Boys-U14",
-            "U14"
-        )
-
-        clean = clean.replace(
-            "Rugby 7S Boys-U14",
-            "U14 7S"
-        )
-
-        clean = clean.replace(
-            "UU14",
-            "U14"
-        )
-
-        title = clean
+        # ----------------------------------------------------
+        # Description
+        # ----------------------------------------------------
 
         description = (
             "Source: LRGS Rugby"
         )
+
+        if is_tbc:
+
+            description += (
+                "\nTiming: TBC"
+                "\nHolding event - "
+                "time to be confirmed"
+            )
 
         if location_status:
 
@@ -872,43 +1050,177 @@ def get_lucas_events():
                 f"{location_status}"
             )
 
-        uid_key = re.sub(
-            r"[^a-z0-9]+",
-            "-",
-            clean.lower()
-        ).strip("-")
+        # ----------------------------------------------------
+        # Stable UID based on source event
+        # ----------------------------------------------------
+
+        source_uid = get_prop(
+            block,
+            "UID"
+        )
+
+        if source_uid:
+
+            uid_key = re.sub(
+                r"[^a-zA-Z0-9]+",
+                "-",
+                source_uid
+            ).strip("-").lower()
+
+        else:
+
+            uid_key = re.sub(
+                r"[^a-zA-Z0-9]+",
+                "-",
+                (
+                    f"{start.strftime('%Y%m%d%H%M%S')}-"
+                    f"{summary}"
+                )
+            ).strip("-").lower()
 
         uid = (
-            f"lucas-"
-            f"{start.strftime('%Y%m%d%H%M')}-"
-            f"{uid_key}"
+            f"lucas-{uid_key}"
             "@boys-sports-calendar"
         )
 
-        end = start + timedelta(
-            minutes=90
-        )
+        # ----------------------------------------------------
+        # Create calendar event
+        # ----------------------------------------------------
 
-        events.append(
-            ics_event(
+        if is_tbc:
+
+            event = ics_allday_event(
+                uid=uid,
+                date_value=start.date(),
+                summary=clean,
+                description=description
+            )
+
+            display_time = (
+                f"{start.strftime('%d/%m/%Y')} "
+                f"ALL DAY / TBC"
+            )
+
+        else:
+
+            end = start + timedelta(
+                minutes=90
+            )
+
+            event = ics_timed_event(
                 uid=uid,
                 start=start,
                 end=end,
-                summary=title,
-                description=description,
+                summary=clean,
+                description=description
             )
+
+            display_time = start.strftime(
+                "%d/%m/%Y %H:%M"
+            )
+
+        events.append(
+            event
         )
 
-    if not events:
+        fixture_info.append({
+            "start": start,
+            "title": clean,
+            "location": location_status,
+            "display_time": display_time,
+        })
+
+    # --------------------------------------------------------
+    # CRITICAL SAFETY CHECK
+    # --------------------------------------------------------
+
+    imported_count = len(
+        events
+    )
+
+    print()
+    print(
+        f"LRGS U14 events to import: "
+        f"{imported_count}"
+    )
+
+    print(
+        f"LRGS U14 events skipped: "
+        f"{source_count - imported_count}"
+    )
+
+    if imported_count != source_count:
+
+        print()
+        print(
+            "=" * 70
+        )
+
+        print(
+            "ERROR: LRGS U14 EVENT COUNT MISMATCH"
+        )
+
+        print(
+            f"Source contains: "
+            f"{source_count}"
+        )
+
+        print(
+            f"Importer produced: "
+            f"{imported_count}"
+        )
+
+        print(
+            "Calendar files will NOT be written."
+        )
+
+        print(
+            "=" * 70
+        )
 
         raise RuntimeError(
-            "No Lucas U14 Rugby events found"
+            "LRGS U14 event count mismatch"
         )
+
+    # --------------------------------------------------------
+    # Sort display information
+    # --------------------------------------------------------
+
+    fixture_info.sort(
+        key=lambda x: x["start"]
+    )
+
+    print()
+    print("=" * 70)
+    print("LUCAS U14 RUGBY FIXTURES")
+    print("=" * 70)
+
+    for number, fixture in enumerate(
+        fixture_info,
+        start=1
+    ):
+
+        print(
+            f"{number:02d}. "
+            f"{fixture['display_time']}  "
+            f"{fixture['title']}"
+        )
+
+        if fixture["location"]:
+
+            print(
+                f"    Venue status: "
+                f"{fixture['location']}"
+            )
+
+    print("=" * 70)
 
     print(
         f"Lucas events found: "
         f"{len(events)}"
     )
+
+    print("=" * 70)
 
     return events
 
@@ -924,7 +1236,7 @@ def main():
     print("=" * 70)
 
     # --------------------------------------------------------
-    # Full-Time
+    # Get Full-Time data
     # --------------------------------------------------------
 
     fulltime = get_fulltime_fixtures()
@@ -941,27 +1253,19 @@ def main():
         if fixture["boy"] == "Thomas"
     ]
 
-    # --------------------------------------------------------
-    # Safety checks
-    # --------------------------------------------------------
-
     if not harry_fixtures:
 
         raise RuntimeError(
             "No Harry U9 fixtures found. "
-            "Refusing to overwrite calendars."
+            "Refusing to update calendars."
         )
 
     if not thomas_fixtures:
 
         raise RuntimeError(
             "No Thomas U12 fixtures found. "
-            "Refusing to overwrite calendars."
+            "Refusing to update calendars."
         )
-
-    # --------------------------------------------------------
-    # Create events
-    # --------------------------------------------------------
 
     harry_events = create_fulltime_events(
         harry_fixtures
@@ -971,10 +1275,16 @@ def main():
         thomas_fixtures
     )
 
+    # --------------------------------------------------------
+    # Get Lucas data
+    #
+    # This function includes its own safety check.
+    # --------------------------------------------------------
+
     lucas_events = get_lucas_events()
 
     # --------------------------------------------------------
-    # Write individual feeds
+    # INDIVIDUAL FEEDS
     # --------------------------------------------------------
 
     write_calendar(
@@ -999,7 +1309,7 @@ def main():
     )
 
     # --------------------------------------------------------
-    # Combined personal feed
+    # COMBINED FEED
     # --------------------------------------------------------
 
     combined = (
@@ -1016,7 +1326,7 @@ def main():
     )
 
     # --------------------------------------------------------
-    # Summary
+    # FINAL SUMMARY
     # --------------------------------------------------------
 
     print()
