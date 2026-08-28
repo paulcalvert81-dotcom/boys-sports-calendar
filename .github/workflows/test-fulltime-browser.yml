@@ -3,11 +3,15 @@ name: Test Full-Time Browser
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Check out repository
         uses: actions/checkout@v4
 
@@ -16,87 +20,395 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Playwright
+      - name: Install Python packages
         run: |
-          python -m pip install playwright
+          python -m pip install --upgrade pip
+          python -m pip install playwright beautifulsoup4
+
+      - name: Install Chromium
+        run: |
           python -m playwright install --with-deps chromium
 
       - name: Create browser test
         run: |
-          cat > browser_test.py <<'PYTHON'
+          cat > cloud_browser_test.py <<'PYTHON'
+
           from playwright.sync_api import sync_playwright
-          import os
-          import time
+          from bs4 import BeautifulSoup
+          from datetime import datetime
+          import re
 
-          html = """
-          <!DOCTYPE html>
-          <html>
-          <head>
-              <meta charset="UTF-8">
-              <title>Boys Sports Full-Time Test</title>
-          </head>
-          <body>
+          FEED_URL = "https://paulcalvert81-dotcom.github.io/boys-sports-calendar/test_club_feed.html"
 
-          <h2>Full-Time Club Fixtures Test</h2>
+          TARGET_TEAMS = {
+              "Heysham Blue Star U9": "Harry",
+              "Heysham Blue Star U12": "Thomas",
+          }
 
-          <div id="lrep450437846" style="width: 350px;">
-              Data loading....
-          </div>
 
-          <script>
-          var lrcode = '450437846'
-          </script>
+          def parse_date(text):
 
-          <script
-              language="Javascript"
-              type="text/javascript"
-              src="https://fulltime.thefa.com/client/api/cs1.js">
-          </script>
+              text = " ".join(text.split())
 
-          </body>
-          </html>
-          """
+              text = re.sub(
+                  r"\bSept\b",
+                  "Sep",
+                  text
+              )
 
-          with open("test_club_feed.html", "w", encoding="utf-8") as f:
-              f.write(html)
+              try:
+                  return datetime.strptime(
+                      text,
+                      "%a %d %b %Y %H:%M"
+                  )
+
+              except ValueError:
+                  return None
+
+
+          def parse_fixtures(html):
+
+              soup = BeautifulSoup(
+                  html,
+                  "html.parser"
+              )
+
+              table = soup.find("table")
+
+              if not table:
+                  raise RuntimeError(
+                      "No fixture table found"
+                  )
+
+              fixtures = []
+
+              current_datetime = None
+
+              for row in table.find_all("tr"):
+
+                  cells = row.find_all("td")
+
+                  if not cells:
+                      continue
+
+
+                  # Date/time row
+                  if len(cells) == 1:
+
+                      text = cells[0].get_text(
+                          " ",
+                          strip=True
+                      )
+
+                      parsed = parse_date(text)
+
+                      if parsed:
+                          current_datetime = parsed
+
+                      continue
+
+
+                  if len(cells) < 4:
+                      continue
+
+
+                  cell_texts = [
+                      cell.get_text(
+                          " ",
+                          strip=True
+                      )
+                      for cell in cells
+                  ]
+
+
+                  # Find the "v" separator
+                  v_index = None
+
+                  for i, text in enumerate(cell_texts):
+
+                      if text.lower() == "v":
+                          v_index = i
+                          break
+
+
+                  if v_index is None:
+                      continue
+
+
+                  if (
+                      v_index < 1
+                      or
+                      v_index + 1 >= len(cell_texts)
+                  ):
+                      continue
+
+
+                  home = cell_texts[
+                      v_index - 1
+                  ]
+
+                  away = cell_texts[
+                      v_index + 1
+                  ]
+
+
+                  venue = ""
+
+                  if v_index + 2 < len(cell_texts):
+
+                      venue = cell_texts[
+                          v_index + 2
+                      ]
+
+
+                  competition = ""
+
+                  for text in cell_texts:
+
+                      if text in {
+                          "CC",
+                          "ACUP"
+                      }:
+
+                          competition = text
+
+                          break
+
+
+                  fixture_id = ""
+
+                  for link in row.find_all("a"):
+
+                      href = link.get(
+                          "href",
+                          ""
+                      )
+
+                      match = re.search(
+                          r"displayFixture\.html\?id=(\d+)",
+                          href
+                      )
+
+                      if match:
+
+                          fixture_id = match.group(1)
+
+                          break
+
+
+                  boy = None
+                  target_team = None
+
+
+                  for (
+                      team_name,
+                      boy_name
+                  ) in TARGET_TEAMS.items():
+
+                      if (
+                          home == team_name
+                          or
+                          away == team_name
+                      ):
+
+                          boy = boy_name
+
+                          target_team = team_name
+
+                          break
+
+
+                  if not boy:
+                      continue
+
+
+                  home_away = (
+                      "HOME"
+                      if home == target_team
+                      else "AWAY"
+                  )
+
+
+                  fixtures.append({
+
+                      "boy": boy,
+
+                      "fixture_id": fixture_id,
+
+                      "datetime": current_datetime,
+
+                      "home": home,
+
+                      "away": away,
+
+                      "venue": venue,
+
+                      "competition": competition,
+
+                      "home_away": home_away,
+
+                  })
+
+
+              return fixtures
+
+
+          print("Launching Chromium...")
 
           with sync_playwright() as p:
-              browser = p.chromium.launch(headless=False)
+
+              browser = p.chromium.launch(
+                  headless=False
+              )
 
               page = browser.new_page()
 
-              file_path = (
-                  "file:///"
-                  + os.path.abspath("test_club_feed.html").replace("\\", "/")
+              print("")
+              print("Opening:")
+              print(FEED_URL)
+              print("")
+
+              page.goto(
+                  FEED_URL,
+                  wait_until="load",
+                  timeout=60000
               )
 
-              print("Opening:", file_path)
+              print(
+                  "Page loaded."
+              )
 
-              page.goto(file_path)
+              print(
+                  "Waiting for Full-Time..."
+              )
 
-              print("Waiting for Full-Time to load...")
-              page.wait_for_timeout(15000)
+              page.wait_for_timeout(
+                  15000
+              )
 
-              print("")
-              print("========== PAGE TEXT ==========")
-              print(page.locator("body").inner_text())
-              print("========== END PAGE TEXT ==========")
-              print("")
+              print(
+                  "Looking for fixture table..."
+              )
 
-              page.screenshot(path="fulltime-test.png", full_page=True)
+              table = page.locator(
+                  "table"
+              ).first
+
+              table.wait_for(
+                  state="visible",
+                  timeout=30000
+              )
+
+              print(
+                  "Fixture table found."
+              )
+
+              html = table.evaluate(
+                  "(element) => element.outerHTML"
+              )
+
+              print(
+                  "Captured fixture table:",
+                  len(html),
+                  "characters"
+              )
+
+              page.screenshot(
+                  path="fulltime-cloud-test.png",
+                  full_page=True
+              )
 
               browser.close()
+
+
+          fixtures = parse_fixtures(html)
+
+
+          print("")
+          print("=" * 100)
+          print("HARRY + THOMAS FIXTURES")
+          print("=" * 100)
+          print("")
+
+
+          for fixture in fixtures:
+
+              dt = fixture["datetime"]
+
+              if dt:
+
+                  date_text = dt.strftime(
+                      "%d/%m/%Y"
+                  )
+
+                  time_text = dt.strftime(
+                      "%H:%M"
+                  )
+
+              else:
+
+                  date_text = "UNKNOWN"
+
+                  time_text = "UNKNOWN"
+
+
+              print(
+                  f"{fixture['boy']:<8}"
+                  f"{date_text} "
+                  f"{time_text}  "
+                  f"{fixture['home_away']:<4}  "
+                  f"{fixture['home']}  v  "
+                  f"{fixture['away']}"
+              )
+
+
+              print(
+                  f"{'':8}"
+                  f"ID: "
+                  f"{fixture['fixture_id'] or 'NONE':<10} "
+                  f"Venue: "
+                  f"{fixture['venue']}"
+              )
+
+
+              if fixture["competition"]:
+
+                  print(
+                      f"{'':8}"
+                      f"Competition: "
+                      f"{fixture['competition']}"
+                  )
+
+
+              print("")
+
+
+          print("=" * 100)
+
+          print(
+              f"TOTAL FIXTURES FOUND: "
+              f"{len(fixtures)}"
+          )
+
+          print("=" * 100)
+
+          if len(fixtures) == 0:
+
+              raise RuntimeError(
+                  "No Harry or Thomas fixtures found"
+              )
+
           PYTHON
 
       - name: Run browser test
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb
-          xvfb-run -a python browser_test.py
+          xvfb-run -a python cloud_browser_test.py
 
       - name: Upload screenshot
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: fulltime-browser-test
-          path: fulltime-test.png
+          name: fulltime-cloud-test
+          path: fulltime-cloud-test.png
