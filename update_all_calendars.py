@@ -209,7 +209,6 @@ def parse_fulltime_fixtures(html):
         if not cells:
             continue
 
-        # Date/time separator row
         if len(cells) == 1:
 
             text = cells[0].get_text(
@@ -830,11 +829,8 @@ def get_lucas_events():
     )
 
     # --------------------------------------------------------
-    # First pass:
-    # find EVERY U14 rugby event in the source.
-    #
-    # This count is deliberately independent of the event
-    # creation logic. It gives us our safety check.
+    # Find EVERY U14 rugby event.
+    # Nothing is filtered based on opponent name.
     # --------------------------------------------------------
 
     source_u14 = []
@@ -878,6 +874,7 @@ def get_lucas_events():
         )
 
         if not start:
+
             raise RuntimeError(
                 "LRGS contains a U14 Rugby "
                 "event with an unreadable "
@@ -901,8 +898,7 @@ def get_lucas_events():
     )
 
     # --------------------------------------------------------
-    # Second pass:
-    # convert every source event.
+    # Convert EVERY source event.
     # --------------------------------------------------------
 
     events = []
@@ -927,7 +923,7 @@ def get_lucas_events():
         )
 
         # ----------------------------------------------------
-        # Clean title
+        # Clean the LRGS title
         # ----------------------------------------------------
 
         clean = summary
@@ -976,12 +972,26 @@ def get_lucas_events():
         )
 
         # ----------------------------------------------------
-        # Timing status
-        #
-        # We don't try to guess specific placeholder words.
-        #
-        # A zero-time event is treated as a holding event.
-        # Any explicit TBC wording is also treated as holding.
+        # HOME / AWAY
+        # ----------------------------------------------------
+
+        location_status = get_prop(
+            block,
+            "LOCATION"
+        )
+
+        location_status = {
+            "H": "HOME",
+            "A": "AWAY"
+        }.get(
+            location_status,
+            location_status.upper()
+            if location_status
+            else ""
+        )
+
+        # ----------------------------------------------------
+        # TBC / holding event
         # ----------------------------------------------------
 
         is_zero_time = (
@@ -1003,7 +1013,7 @@ def get_lucas_events():
 
         if is_tbc:
 
-            if "tbc" not in clean.lower():
+            if "timings tbc" not in clean.lower():
 
                 clean = (
                     clean
@@ -1011,21 +1021,21 @@ def get_lucas_events():
                 )
 
         # ----------------------------------------------------
-        # Venue status
+        # Put HOME / AWAY INTO THE TITLE
         # ----------------------------------------------------
 
-        location_status = get_prop(
-            block,
-            "LOCATION"
-        )
+        if location_status in {
+            "HOME",
+            "AWAY"
+        }:
 
-        location_status = {
-            "H": "Home",
-            "A": "Away"
-        }.get(
-            location_status,
-            location_status
-        )
+            title = (
+                f"{location_status} - {clean}"
+            )
+
+        else:
+
+            title = clean
 
         # ----------------------------------------------------
         # Description
@@ -1047,11 +1057,11 @@ def get_lucas_events():
 
             description += (
                 f"\nVenue status: "
-                f"{location_status}"
+                f"{location_status.title()}"
             )
 
         # ----------------------------------------------------
-        # Stable UID based on source event
+        # Stable UID
         # ----------------------------------------------------
 
         source_uid = get_prop(
@@ -1084,7 +1094,7 @@ def get_lucas_events():
         )
 
         # ----------------------------------------------------
-        # Create calendar event
+        # Create event
         # ----------------------------------------------------
 
         if is_tbc:
@@ -1092,7 +1102,7 @@ def get_lucas_events():
             event = ics_allday_event(
                 uid=uid,
                 date_value=start.date(),
-                summary=clean,
+                summary=title,
                 description=description
             )
 
@@ -1111,7 +1121,7 @@ def get_lucas_events():
                 uid=uid,
                 start=start,
                 end=end,
-                summary=clean,
+                summary=title,
                 description=description
             )
 
@@ -1125,17 +1135,22 @@ def get_lucas_events():
 
         fixture_info.append({
             "start": start,
-            "title": clean,
+            "title": title,
             "location": location_status,
             "display_time": display_time,
         })
 
     # --------------------------------------------------------
-    # CRITICAL SAFETY CHECK
+    # SAFETY CHECK
     # --------------------------------------------------------
 
     imported_count = len(
         events
+    )
+
+    skipped_count = (
+        source_count
+        - imported_count
     )
 
     print()
@@ -1146,19 +1161,17 @@ def get_lucas_events():
 
     print(
         f"LRGS U14 events skipped: "
-        f"{source_count - imported_count}"
+        f"{skipped_count}"
     )
 
     if imported_count != source_count:
 
         print()
-        print(
-            "=" * 70
-        )
-
+        print("=" * 70)
         print(
             "ERROR: LRGS U14 EVENT COUNT MISMATCH"
         )
+        print("=" * 70)
 
         print(
             f"Source contains: "
@@ -1174,16 +1187,14 @@ def get_lucas_events():
             "Calendar files will NOT be written."
         )
 
-        print(
-            "=" * 70
-        )
+        print("=" * 70)
 
         raise RuntimeError(
             "LRGS U14 event count mismatch"
         )
 
     # --------------------------------------------------------
-    # Sort display information
+    # Display fixtures
     # --------------------------------------------------------
 
     fixture_info.sort(
@@ -1210,7 +1221,7 @@ def get_lucas_events():
 
             print(
                 f"    Venue status: "
-                f"{fixture['location']}"
+                f"{fixture['location'].title()}"
             )
 
     print("=" * 70)
@@ -1236,7 +1247,7 @@ def main():
     print("=" * 70)
 
     # --------------------------------------------------------
-    # Get Full-Time data
+    # Full-Time
     # --------------------------------------------------------
 
     fulltime = get_fulltime_fixtures()
@@ -1276,15 +1287,13 @@ def main():
     )
 
     # --------------------------------------------------------
-    # Get Lucas data
-    #
-    # This function includes its own safety check.
+    # LRGS
     # --------------------------------------------------------
 
     lucas_events = get_lucas_events()
 
     # --------------------------------------------------------
-    # INDIVIDUAL FEEDS
+    # INDIVIDUAL CALENDARS
     # --------------------------------------------------------
 
     write_calendar(
@@ -1309,7 +1318,7 @@ def main():
     )
 
     # --------------------------------------------------------
-    # COMBINED FEED
+    # COMBINED CALENDAR
     # --------------------------------------------------------
 
     combined = (
