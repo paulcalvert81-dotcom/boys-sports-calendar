@@ -1,0 +1,102 @@
+name: Test Full-Time Browser
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Playwright
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Create browser test
+        run: |
+          cat > browser_test.py <<'PYTHON'
+          from playwright.sync_api import sync_playwright
+          import os
+          import time
+
+          html = """
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <title>Boys Sports Full-Time Test</title>
+          </head>
+          <body>
+
+          <h2>Full-Time Club Fixtures Test</h2>
+
+          <div id="lrep450437846" style="width: 350px;">
+              Data loading....
+          </div>
+
+          <script>
+          var lrcode = '450437846'
+          </script>
+
+          <script
+              language="Javascript"
+              type="text/javascript"
+              src="https://fulltime.thefa.com/client/api/cs1.js">
+          </script>
+
+          </body>
+          </html>
+          """
+
+          with open("test_club_feed.html", "w", encoding="utf-8") as f:
+              f.write(html)
+
+          with sync_playwright() as p:
+              browser = p.chromium.launch(headless=False)
+
+              page = browser.new_page()
+
+              file_path = (
+                  "file:///"
+                  + os.path.abspath("test_club_feed.html").replace("\\", "/")
+              )
+
+              print("Opening:", file_path)
+
+              page.goto(file_path)
+
+              print("Waiting for Full-Time to load...")
+              page.wait_for_timeout(15000)
+
+              print("")
+              print("========== PAGE TEXT ==========")
+              print(page.locator("body").inner_text())
+              print("========== END PAGE TEXT ==========")
+              print("")
+
+              page.screenshot(path="fulltime-test.png", full_page=True)
+
+              browser.close()
+          PYTHON
+
+      - name: Run browser test
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          xvfb-run -a python browser_test.py
+
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fulltime-browser-test
+          path: fulltime-test.png
