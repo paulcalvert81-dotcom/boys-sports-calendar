@@ -209,6 +209,10 @@ def parse_fulltime_fixtures(html):
         if not cells:
             continue
 
+        # ----------------------------------------------------
+        # Date/time header row
+        # ----------------------------------------------------
+
         if len(cells) == 1:
 
             text = cells[0].get_text(
@@ -235,6 +239,10 @@ def parse_fulltime_fixtures(html):
             )
             for cell in cells
         ]
+
+        # ----------------------------------------------------
+        # Find the "v" cell
+        # ----------------------------------------------------
 
         v_index = None
 
@@ -274,6 +282,10 @@ def parse_fulltime_fixtures(html):
                 v_index + 2
             ]
 
+        # ----------------------------------------------------
+        # Competition
+        # ----------------------------------------------------
+
         competition = ""
 
         for text in cell_texts:
@@ -284,6 +296,10 @@ def parse_fulltime_fixtures(html):
             }:
                 competition = text
                 break
+
+        # ----------------------------------------------------
+        # Fixture ID
+        # ----------------------------------------------------
 
         fixture_id = ""
 
@@ -304,6 +320,10 @@ def parse_fulltime_fixtures(html):
             if match:
                 fixture_id = match.group(1)
                 break
+
+        # ----------------------------------------------------
+        # Identify Harry / Thomas
+        # ----------------------------------------------------
 
         boy = None
         target_team = None
@@ -374,7 +394,7 @@ def get_fulltime_fixtures():
         page = context.new_page()
 
         page.set_default_timeout(
-            15000
+            20000
         )
 
         print()
@@ -402,14 +422,20 @@ def get_fulltime_fixtures():
 
         found = False
 
+        # ----------------------------------------------------
+        # FIRST PASS
+        #
+        # 36 attempts x 5 seconds = approximately 3 minutes
+        # ----------------------------------------------------
+
         for attempt in range(
             1,
-            25
+            37
         ):
 
             print(
                 f"Checking Full-Time "
-                f"(attempt {attempt}/24)..."
+                f"(attempt {attempt}/36)..."
             )
 
             try:
@@ -453,82 +479,61 @@ def get_fulltime_fixtures():
                 found = True
                 break
 
-            page.wait_for_timeout(
-                5000
-            )
+            # ------------------------------------------------
+            # Every 12 attempts, reload the page.
+            #
+            # This helps if the Full-Time iframe/script
+            # failed to initialise on the first page load.
+            # ------------------------------------------------
 
-        if not found:
-
-            print(
-                "Full-Time has not loaded."
-            )
-
-            try:
-
-                page.reload(
-                    wait_until="domcontentloaded",
-                    timeout=90000
-                )
-
-            except Exception as e:
-
-                print(
-                    "Reload warning:",
-                    e
-                )
-
-            for attempt in range(
-                1,
-                13
+            if (
+                attempt < 36
+                and
+                attempt % 12 == 0
             ):
 
+                print()
                 print(
-                    f"Reload attempt "
-                    f"{attempt}/12..."
+                    "Full-Time still not loaded."
                 )
 
-                page.wait_for_timeout(
-                    5000
+                print(
+                    "Reloading hosted page..."
                 )
 
                 try:
 
-                    body_text = page.locator(
-                        "body"
-                    ).inner_text(
-                        timeout=15000
+                    page.reload(
+                        wait_until="domcontentloaded",
+                        timeout=90000
                     )
-
-                except Exception:
-
-                    body_text = ""
-
-                table_count = page.locator(
-                    "table"
-                ).count()
-
-                print(
-                    f"  Tables: {table_count} "
-                    f"Text: {len(body_text)}"
-                )
-
-                if (
-                    "Heysham Blue Star U12"
-                    in body_text
-                    or
-                    "Heysham Blue Star U9"
-                    in body_text
-                ):
 
                     print(
-                        "  Full-Time data found "
-                        "after reload."
+                        "Reload complete."
                     )
 
-                    found = True
-                    break
+                except Exception as e:
+
+                    print(
+                        "Reload warning:",
+                        e
+                    )
+
+            page.wait_for_timeout(
+                5000
+            )
+
+        # ----------------------------------------------------
+        # FINAL CHECK
+        # ----------------------------------------------------
 
         if not found:
+
+            print()
+            print(
+                "Full-Time did not load "
+                "after approximately 3 minutes."
+            )
 
             browser.close()
 
@@ -547,6 +552,10 @@ def get_fulltime_fixtures():
         )
 
         best_html = ""
+
+        # ----------------------------------------------------
+        # TABLE CAPTURE
+        # ----------------------------------------------------
 
         for attempt in range(
             1,
@@ -657,6 +666,10 @@ def create_fulltime_events(
             else fixture["home"]
         )
 
+        # ----------------------------------------------------
+        # TITLE
+        # ----------------------------------------------------
+
         summary = (
             f"{home_away} v {opponent}"
         )
@@ -676,6 +689,10 @@ def create_fulltime_events(
         description_lines.append(
             "Source: FA Full-Time"
         )
+
+        # ----------------------------------------------------
+        # UID
+        # ----------------------------------------------------
 
         if fixture["fixture_id"]:
 
@@ -829,8 +846,10 @@ def get_lucas_events():
     )
 
     # --------------------------------------------------------
-    # Find EVERY U14 rugby event.
-    # Nothing is filtered based on opponent name.
+    # IMPORTANT:
+    #
+    # Find EVERY U14 Rugby event.
+    # Do not filter by opponent name.
     # --------------------------------------------------------
 
     source_u14 = []
@@ -898,7 +917,7 @@ def get_lucas_events():
     )
 
     # --------------------------------------------------------
-    # Convert EVERY source event.
+    # Convert EVERY event
     # --------------------------------------------------------
 
     events = []
@@ -923,7 +942,7 @@ def get_lucas_events():
         )
 
         # ----------------------------------------------------
-        # Clean the LRGS title
+        # Clean title
         # ----------------------------------------------------
 
         clean = summary
@@ -991,7 +1010,7 @@ def get_lucas_events():
         )
 
         # ----------------------------------------------------
-        # TBC / holding event
+        # TBC detection
         # ----------------------------------------------------
 
         is_zero_time = (
@@ -1021,7 +1040,7 @@ def get_lucas_events():
                 )
 
         # ----------------------------------------------------
-        # Put HOME / AWAY INTO THE TITLE
+        # Add HOME / AWAY to title
         # ----------------------------------------------------
 
         if location_status in {
@@ -1094,7 +1113,7 @@ def get_lucas_events():
         )
 
         # ----------------------------------------------------
-        # Create event
+        # TBC = all day
         # ----------------------------------------------------
 
         if is_tbc:
@@ -1194,7 +1213,7 @@ def get_lucas_events():
         )
 
     # --------------------------------------------------------
-    # Display fixtures
+    # Display
     # --------------------------------------------------------
 
     fixture_info.sort(
@@ -1247,7 +1266,7 @@ def main():
     print("=" * 70)
 
     # --------------------------------------------------------
-    # Full-Time
+    # FULL-TIME
     # --------------------------------------------------------
 
     fulltime = get_fulltime_fixtures()
@@ -1318,7 +1337,7 @@ def main():
     )
 
     # --------------------------------------------------------
-    # COMBINED CALENDAR
+    # COMBINED
     # --------------------------------------------------------
 
     combined = (
