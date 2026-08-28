@@ -1,4 +1,4 @@
-name: Update Boys Sports Calendar
+name: Update Boys Sports Calendars
 
 on:
   workflow_dispatch:
@@ -11,20 +11,111 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check out calendar
+
+      # ------------------------------------------------------
+      # Get repository
+      # ------------------------------------------------------
+
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Update Lucas from LRGS
-        run: python update_lucas.py
 
-      - name: Update Harry and Thomas from Full-Time
-        run: python update_fulltime.py
+      # ------------------------------------------------------
+      # Python
+      # ------------------------------------------------------
 
-      - name: Commit updated calendar
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+
+      # ------------------------------------------------------
+      # Python packages
+      # ------------------------------------------------------
+
+      - name: Install Python packages
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright beautifulsoup4
+
+
+      # ------------------------------------------------------
+      # Chromium
+      # ------------------------------------------------------
+
+      - name: Install Chromium
+        run: |
+          python -m playwright install --with-deps chromium
+
+
+      # ------------------------------------------------------
+      # X virtual display
+      #
+      # Full-Time works with headed Chromium, so we run
+      # Chromium headed inside Xvfb on the GitHub runner.
+      # ------------------------------------------------------
+
+      - name: Install Xvfb
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+
+
+      # ------------------------------------------------------
+      # Update all four calendars
+      # ------------------------------------------------------
+
+      - name: Update Boys Sports calendars
+        run: |
+          xvfb-run -a python update_all_calendars.py
+
+
+      # ------------------------------------------------------
+      # Show what was created
+      # ------------------------------------------------------
+
+      - name: Show generated calendars
+        run: |
+          echo "Generated calendar files:"
+          ls -lh *.ics
+
+          echo ""
+          echo "Event counts:"
+
+          echo -n "U14s LRGS Rugby: "
+          grep -c "^BEGIN:VEVENT" u14s-lrgs-rugby.ics || true
+
+          echo -n "U12 Bluestars:   "
+          grep -c "^BEGIN:VEVENT" u12-bluestars.ics || true
+
+          echo -n "U9 Bluestars:    "
+          grep -c "^BEGIN:VEVENT" u9-bluestars.ics || true
+
+          echo -n "Combined:         "
+          grep -c "^BEGIN:VEVENT" calendar.ics || true
+
+
+      # ------------------------------------------------------
+      # Commit the calendars
+      # ------------------------------------------------------
+
+      - name: Commit updated calendars
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add calendar.ics
-          git diff --cached --quiet || git commit -m "Update Boys Sports calendar"
-          git push
+
+          git add \
+            calendar.ics \
+            u14s-lrgs-rugby.ics \
+            u12-bluestars.ics \
+            u9-bluestars.ics
+
+          if git diff --cached --quiet; then
+            echo "No calendar changes."
+          else
+            git commit -m "Update Boys Sports calendars"
+            git push
+          fi
