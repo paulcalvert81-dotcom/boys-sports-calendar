@@ -12,347 +12,419 @@ X-WR-CALNAME:Boys Sports
 
 X-WR-TIMEZONE:Europe/London
 
+
 BEGIN:VEVENT
 
-UID:boys-sports-thomas-202609061200-1@boys-sports-calendar
+UID:boys-sports-lucas-202609121130-2@boys-sports-calendar
 
 DTSTAMP:20260827T124654Z
 
-DTSTART;TZID=Europe/London:20260906T120000
-
-DTEND;TZID=Europe/London:20260906T133000
-
-SUMMARY:Thomas Football: Heysham Blue Star U12 v Halton Titans U12
-
-LOCATION:BARROWS LANE FOOTBALL PITCH
-
-DESCRIPTION:Source: FA Full-Time
-
-END:VEVENT
-
-
-
-BEGIN:VEVENT
-
-UID:boys-sports-thomas-202609131000-4@boys-sports-calendar
-
-DTSTAMP:20260827T124654Z
-
-DTSTART;TZID=Europe/London:20260913T100000
-
-DTEND;TZID=Europe/London:20260913T113000
-
-SUMMARY:Thomas Football: Garstang Chieftains U12 v Heysham Blue Star U12
-
-LOCATION:GARSTANG COMMUNITY ACADEMY
-
-DESCRIPTION:Source: FA Full-Time
-
-END:VEVENT
-
-BEGIN:VEVENT
-
-UID:boys-sports-harry-202609131400-5@boys-sports-calendar
-
-DTSTAMP:20260827T124654Z
-
-DTSTART;TZID=Europe/London:20260913T140000
-
-DTEND;TZID=Europe/London:20260913T153000
-
-SUMMARY:Harry Football: Westgate Wanderers U8 v Heysham Blue Star U9
-
-LOCATION:KING GEORGES PLAYING FIELD (MORECAMBE) KING GEORGE WESTGATE PITCH 1
-
-DESCRIPTION:Competition: UNDER 9 DEVELOPMENT RED.\nSource: FA Full-Time
-
-END:VEVENT
-
-
-
-BEGIN:VEVENT
-
-UID:boys-sports-harry-202609201030-8@boys-sports-calendar
-
-DTSTAMP:20260827T124654Z
-
-DTSTART;TZID=Europe/London:20260920T103000
-
-DTEND;TZID=Europe/London:20260920T120000
-
-SUMMARY:Harry Football: Heysham Blue Star U9 v Garstang Blackhawks U9
-
-LOCATION:BARROWS LANE FOOTBALL PITCH
-
-DESCRIPTION:Competition: UNDER 9 DEVELOPMENT RED.\nSource: FA Full-Time
-
-END:VEVENT
-
-BEGIN:VEVENT
-
-UID:boys-sports-thomas-202609201100-9@boys-sports-calendar
-
-DTSTAMP:20260827T124654Z
-
-DTSTART;TZID=Europe/London:20260920T110000
-
-DTEND;TZID=Europe/London:20260920T123000
-
-SUMMARY:Thomas Football: Walshaw Sports Club Juniors U12 Walshaw v Heysham Blue Star U12
-
-LOCATION:Walshaw Sports Club Juniors U12 Walshaw
-
-DESCRIPTION:Source: FA Full-Time
-
-END:VEVENT
-
-
-
-BEGIN:VEVENT
-
-UID:boys-sports-harry-202609271200-12@boys-sports-calendar
-
-DTSTAMP:20260827T124654Z
-
-DTSTART;TZID=Europe/London:20260927T120000
-
-DTEND;TZID=Europe/London:20260927T133000
-
-SUMMARY:Harry Football: Garstang Blackhawks U9 v Heysham Blue Star U9
-
-LOCATION:GARSTANG COMMUNITY ACADEMY
-
-DESCRIPTION:Competition: U9 RED AUTUMN CUP\nSource: FA Full-Time
-
-END:VEVENT
-
-BEGIN:VEVENT
-
-UID:boys-sports-thomas-202609271230-13@boys-sports-calendar
-
-DTSTAMP:20260827T124654Z
-
-DTSTART;TZID=Europe/London:20260927T123000
-
-DTEND;TZID=Europe/London:20260927T140000
-
-SUMMARY:Thomas Football: Carnforth Blues U12 v Heysham Blue Star U12
-
-LOCATION:CARNFORTH HIGH SCHOOL CARNFORTH HIGH PITCH 1
-
-DESCRIPTION:Source: FA Full-Time
-
-END:VEVENT
-
-
-BEGIN:VEVENT
-
-UID:boys-sports-harry-202610041100-15@boys-sports-calendar
-
-DTSTAMP:20260827T124654Z
-
-DTSTART;TZID=Europe/London:20261004T110000
-
-DTEND;TZID=Europe/London:20261004T123000
-
-SUMMARY:Harry Football: Bowerham Yellow U9 v Heysham Blue Star U9
-
-LOCATION:FAR MOOR FAR MOOR PITCH 2
-
-DESCRIPTION:Competition: UNDER 9 DEVELOPMENT RED.\nSource: FA Full-Time
-
-END:VEVENT
-
-BEGIN:VEVENT
-
-UID:boys-sports-thomas-202610041200-16@boys-sports-calendar
-
-DTSTAMP:20260827T124654Z
-
-DTSTART;TZID=Europe/London:20261004T120000
-
-DTEND;TZID=Europe/London:20261004T133000
-
-SUMMARY:Thomas Football: Heysham Blue Star U12 v Storeys of Lancaster Colts U12
-
-LOCATION:BARROWS LANE FOOTBALL PITCH
-
-DESCRIPTION:Source: FA Full-Time
-
-END:VEVENT
-
-
-
-
-
-
-
-
-
-
-
-
-BEGIN:VEVENT
-UID:lucas-202609121130-u14a-vs-rgs-newcastle@boys-sports-calendar
-DTSTAMP:20260827T133139Z
 DTSTART;TZID=Europe/London:20260912T113000
+
 DTEND;TZID=Europe/London:20260912T130000
+
 SUMMARY:Lucas Rugby: U14A vs RGS\, Newcastle
+
 LOCATION:Home
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Home
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Home
+
 END:VEVENT
+
 BEGIN:VEVENT
-UID:lucas-202609121130-u14b-vs-rgs-newcastle@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202609121130-3@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20260912T113000
+
 DTEND;TZID=Europe/London:20260912T130000
+
 SUMMARY:Lucas Rugby: U14B vs RGS\, Newcastle
+
 LOCATION:Home
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Home
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Home
+
 END:VEVENT
+
+
+
 BEGIN:VEVENT
-UID:lucas-202609191000-u14a-vs-kirkham-grammar-school@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202609191000-6@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20260919T100000
+
 DTEND;TZID=Europe/London:20260919T113000
+
 SUMMARY:Lucas Rugby: U14A vs Kirkham Grammar School
+
 LOCATION:Away
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Away
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Away
+
 END:VEVENT
+
 BEGIN:VEVENT
-UID:lucas-202609191000-u14b-vs-kirkham-grammar-school@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202609191000-7@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20260919T100000
+
 DTEND;TZID=Europe/London:20260919T113000
+
 SUMMARY:Lucas Rugby: U14B vs Kirkham Grammar School
+
 LOCATION:Away
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Away
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Away
+
 END:VEVENT
+
+
+
 BEGIN:VEVENT
-UID:lucas-202609261415-u14a-vs-stonyhurst@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202609261415-10@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20260926T141500
+
 DTEND;TZID=Europe/London:20260926T154500
+
 SUMMARY:Lucas Rugby: U14A vs Stonyhurst
+
 LOCATION:Away
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Away
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Away
+
 END:VEVENT
+
 BEGIN:VEVENT
-UID:lucas-202609261415-u14b-vs-stonyhurst@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202609261415-11@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20260926T141500
+
 DTEND;TZID=Europe/London:20260926T154500
+
 SUMMARY:Lucas Rugby: U14B vs Stonyhurst
+
 LOCATION:Away
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Away
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Away
+
 END:VEVENT
+
+
+
 BEGIN:VEVENT
-UID:lucas-202610031430-u14a-vs-barnard-castle-school@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202610031430-14@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20261003T143000
+
 DTEND;TZID=Europe/London:20261003T160000
+
 SUMMARY:Lucas Rugby: U14A vs Barnard Castle School
+
 LOCATION:Home
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Home
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Home
+
 END:VEVENT
+
+
+
 BEGIN:VEVENT
-UID:lucas-202610101430-u14a-vs-st-peter-s-school-york@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202610101430-17@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20261010T143000
+
 DTEND;TZID=Europe/London:20261010T160000
+
 SUMMARY:Lucas Rugby: U14A vs St Peter's School\, York
+
 LOCATION:Home
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Home
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Home
+
 END:VEVENT
+
 BEGIN:VEVENT
-UID:lucas-202610101430-u14b-vs-st-peter-s-school-york@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202610101430-18@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20261010T143000
+
 DTEND;TZID=Europe/London:20261010T160000
+
 SUMMARY:Lucas Rugby: U14B vs St Peter's School\, York
+
 LOCATION:Home
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Home
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Home
+
 END:VEVENT
+
 BEGIN:VEVENT
-UID:lucas-202610141430-u14b-vs-sedbergh-school@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202610141430-19@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20261014T143000
+
 DTEND;TZID=Europe/London:20261014T160000
+
 SUMMARY:Lucas Rugby: U14B vs Sedbergh School
+
 LOCATION:Away
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Away
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Away
+
 END:VEVENT
+
 BEGIN:VEVENT
-UID:lucas-202611141000-u14a-vs-wirral-grammar-school-for-boys@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202611141000-20@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20261114T100000
+
 DTEND;TZID=Europe/London:20261114T113000
+
 SUMMARY:Lucas Rugby: U14A vs Wirral Grammar School for Boys
+
 LOCATION:Home
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Home
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Home
+
 END:VEVENT
+
 BEGIN:VEVENT
-UID:lucas-202611141000-u14b-vs-wirral-grammar-school-for-boys@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202611141000-21@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20261114T100000
+
 DTEND;TZID=Europe/London:20261114T113000
+
 SUMMARY:Lucas Rugby: U14B vs Wirral Grammar School for Boys
+
 LOCATION:Home
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Home
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Home
+
 END:VEVENT
+
 BEGIN:VEVENT
-UID:lucas-202611251430-u14b-vs-sedbergh-school@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202611251430-22@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20261125T143000
+
 DTEND;TZID=Europe/London:20261125T160000
+
 SUMMARY:Lucas Rugby: U14B vs Sedbergh School
+
 LOCATION:Home
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Home
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Home
+
 END:VEVENT
+
 BEGIN:VEVENT
-UID:lucas-202701231030-u14a-vs-st-ambrose-college@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202701231030-23@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20270123T103000
+
 DTEND;TZID=Europe/London:20270123T120000
+
 SUMMARY:Lucas Rugby: U14A vs St Ambrose College
+
 LOCATION:Away
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Away
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Away
+
 END:VEVENT
+
 BEGIN:VEVENT
-UID:lucas-202701231030-u14b-vs-st-ambrose-college@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202701231030-24@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20270123T103000
+
 DTEND;TZID=Europe/London:20270123T120000
+
 SUMMARY:Lucas Rugby: U14B vs St Ambrose College
+
 LOCATION:Away
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Away
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Away
+
 END:VEVENT
+
 BEGIN:VEVENT
-UID:lucas-202701301000-u14a-vs-bolton-school@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202701301000-25@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20270130T100000
+
 DTEND;TZID=Europe/London:20270130T113000
+
 SUMMARY:Lucas Rugby: U14A vs Bolton School
+
 LOCATION:Away
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Away
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Away
+
 END:VEVENT
+
 BEGIN:VEVENT
-UID:lucas-202702061030-u14a-vs-the-king-s-school-macclesfield@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202702061030-26@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20270206T103000
+
 DTEND;TZID=Europe/London:20270206T120000
+
 SUMMARY:Lucas Rugby: U14A vs The King's School\, Macclesfield
+
 LOCATION:Home
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Home
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Home
+
 END:VEVENT
+
 BEGIN:VEVENT
-UID:lucas-202702061030-u14b-vs-the-king-s-school-macclesfield@boys-sports-calendar
-DTSTAMP:20260827T133139Z
+
+UID:boys-sports-lucas-202702061030-27@boys-sports-calendar
+
+DTSTAMP:20260827T124654Z
+
 DTSTART;TZID=Europe/London:20270206T103000
+
 DTEND;TZID=Europe/London:20270206T120000
+
 SUMMARY:Lucas Rugby: U14B vs The King's School\, Macclesfield
+
 LOCATION:Home
-DESCRIPTION:Source: LRGS Rugby\nVenue status: Home
+
+DESCRIPTION:Competition: LRGS Rugby\nSource: LRGS ICS\nVenue status: Home
+
 END:VEVENT
+
+BEGIN:VEVENT
+UID:thomas-football-06-09-26-heysham-blue-star-u12-halton-titans-u12@boys-sports-calendar
+DTSTAMP:20260828T125352Z
+DTSTART;TZID=Europe/London:20260906T120000
+DTEND;TZID=Europe/London:20260906T133000
+SUMMARY:Thomas Football: Heysham Blue Star U12 v Halton Titans U12
+LOCATION:BARROWS LANE FOOTBALL PITCH
+DESCRIPTION:Source: FA Full-Time
+END:VEVENT
+BEGIN:VEVENT
+UID:thomas-football-13-09-26-garstang-chieftains-u12-heysham-blue-star-u12@boys-sports-calendar
+DTSTAMP:20260828T125352Z
+DTSTART;TZID=Europe/London:20260913T100000
+DTEND;TZID=Europe/London:20260913T113000
+SUMMARY:Thomas Football: Garstang Chieftains U12 v Heysham Blue Star U12
+LOCATION:GARSTANG COMMUNITY ACADEMY
+DESCRIPTION:Source: FA Full-Time
+END:VEVENT
+BEGIN:VEVENT
+UID:thomas-football-20-09-26-walshaw-sports-club-juniors-u12-walshaw-heysham-blue-star-u12@boys-sports-calendar
+DTSTAMP:20260828T125352Z
+DTSTART;TZID=Europe/London:20260920T110000
+DTEND;TZID=Europe/London:20260920T123000
+SUMMARY:Thomas Football: Walshaw Sports Club Juniors U12 Walshaw v Heysham Blue Star U12
+LOCATION:Walshaw Sports Club Juniors U12 Walshaw
+DESCRIPTION:Source: FA Full-Time
+END:VEVENT
+BEGIN:VEVENT
+UID:thomas-football-27-09-26-carnforth-blues-u12-heysham-blue-star-u12@boys-sports-calendar
+DTSTAMP:20260828T125352Z
+DTSTART;TZID=Europe/London:20260927T123000
+DTEND;TZID=Europe/London:20260927T140000
+SUMMARY:Thomas Football: Carnforth Blues U12 v Heysham Blue Star U12
+LOCATION:CARNFORTH HIGH SCHOOL CARNFORTH HIGH PITCH 1
+DESCRIPTION:Source: FA Full-Time
+END:VEVENT
+BEGIN:VEVENT
+UID:thomas-football-04-10-26-heysham-blue-star-u12-storeys-of-lancaster-colts-u12@boys-sports-calendar
+DTSTAMP:20260828T125352Z
+DTSTART;TZID=Europe/London:20261004T120000
+DTEND;TZID=Europe/London:20261004T133000
+SUMMARY:Thomas Football: Heysham Blue Star U12 v Storeys of Lancaster Colts U12
+LOCATION:BARROWS LANE FOOTBALL PITCH
+DESCRIPTION:Source: FA Full-Time
+END:VEVENT
+BEGIN:VEVENT
+UID:harry-football-13-09-26-westgate-wanderers-u8-heysham-blue-star-u9@boys-sports-calendar
+DTSTAMP:20260828T125353Z
+DTSTART;TZID=Europe/London:20260913T140000
+DTEND;TZID=Europe/London:20260913T153000
+SUMMARY:Harry Football: Westgate Wanderers U8 v Heysham Blue Star U9
+LOCATION:KING GEORGES PLAYING FIELD (MORECAMBE) KING GEORGE WESTGATE PITCH 1
+DESCRIPTION:Source: FA Full-Time
+END:VEVENT
+BEGIN:VEVENT
+UID:harry-football-20-09-26-heysham-blue-star-u9-garstang-blackhawks-u9@boys-sports-calendar
+DTSTAMP:20260828T125353Z
+DTSTART;TZID=Europe/London:20260920T103000
+DTEND;TZID=Europe/London:20260920T120000
+SUMMARY:Harry Football: Heysham Blue Star U9 v Garstang Blackhawks U9
+LOCATION:BARROWS LANE FOOTBALL PITCH
+DESCRIPTION:Source: FA Full-Time
+END:VEVENT
+BEGIN:VEVENT
+UID:harry-football-27-09-26-garstang-blackhawks-u9-heysham-blue-star-u9@boys-sports-calendar
+DTSTAMP:20260828T125353Z
+DTSTART;TZID=Europe/London:20260927T120000
+DTEND;TZID=Europe/London:20260927T133000
+SUMMARY:Harry Football: Garstang Blackhawks U9 v Heysham Blue Star U9
+LOCATION:GARSTANG COMMUNITY ACADEMY
+DESCRIPTION:Source: FA Full-Time
+END:VEVENT
+BEGIN:VEVENT
+UID:harry-football-04-10-26-bowerham-yellow-u9-heysham-blue-star-u9@boys-sports-calendar
+DTSTAMP:20260828T125353Z
+DTSTART;TZID=Europe/London:20261004T110000
+DTEND;TZID=Europe/London:20261004T123000
+SUMMARY:Harry Football: Bowerham Yellow U9 v Heysham Blue Star U9
+LOCATION:FAR MOOR FAR MOOR PITCH 2
+DESCRIPTION:Source: FA Full-Time
+END:VEVENT
 END:VCALENDAR
 
