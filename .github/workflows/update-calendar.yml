@@ -38,7 +38,40 @@ jobs:
 
       - name: Update Boys Sports calendars
         run: |
-          xvfb-run -a python update_all_calendars.py
+          success=0
+
+          for attempt in 1 2 3
+          do
+            echo "============================================================"
+            echo "CALENDAR UPDATE ATTEMPT $attempt/3"
+            echo "============================================================"
+
+            if xvfb-run -a python update_all_calendars.py
+            then
+              echo ""
+              echo "Calendar update succeeded on attempt $attempt."
+              success=1
+              break
+            fi
+
+            echo ""
+            echo "Calendar update failed on attempt $attempt."
+
+            if [ "$attempt" -lt 3 ]
+            then
+              echo "Waiting 60 seconds before starting a completely fresh attempt..."
+              sleep 60
+            fi
+          done
+
+          if [ "$success" -ne 1 ]
+          then
+            echo ""
+            echo "============================================================"
+            echo "ALL 3 CALENDAR UPDATE ATTEMPTS FAILED"
+            echo "============================================================"
+            exit 1
+          fi
 
       - name: Show generated calendars
         run: |
