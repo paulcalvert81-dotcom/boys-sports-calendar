@@ -8,7 +8,7 @@ X-WR-CALDESC:Thomas U12 Heysham Blue Star fixtures
 X-WR-TIMEZONE:Europe/London
 BEGIN:VEVENT
 UID:fulltime-30210126@boys-sports-calendar
-DTSTAMP:20260923T052608Z
+DTSTAMP:20260924T052610Z
 DTSTART;TZID=Europe/London:20260927T123000
 DTEND;TZID=Europe/London:20260927T140000
 SUMMARY:AWAY v Carnforth Blues U12
@@ -17,7 +17,7 @@ DESCRIPTION:Carnforth Blues U12 v Heysham Blue Star U12\nSource: FA Full-Time
 END:VEVENT
 BEGIN:VEVENT
 UID:fulltime-30902653@boys-sports-calendar
-DTSTAMP:20260923T052608Z
+DTSTAMP:20260924T052610Z
 DTSTART;TZID=Europe/London:20261011T100000
 DTEND;TZID=Europe/London:20261011T113000
 SUMMARY:AWAY v Storeys of Lancaster Colts U12
@@ -26,7 +26,7 @@ DESCRIPTION:Storeys of Lancaster Colts U12 v Heysham Blue Star U12\nSource: FA F
 END:VEVENT
 BEGIN:VEVENT
 UID:fulltime-202610181100-heysham-blue-star-u12-fulwood-amateur-u12-fulwood-amateurs-u12@boys-sports-calendar
-DTSTAMP:20260923T052608Z
+DTSTAMP:20260924T052610Z
 DTSTART;TZID=Europe/London:20261018T110000
 DTEND;TZID=Europe/London:20261018T123000
 SUMMARY:HOME v Fulwood Amateur U12 Fulwood Amateurs U12
@@ -34,12 +34,12 @@ LOCATION:Heysham Blue Star U11
 DESCRIPTION:Heysham Blue Star U12 v Fulwood Amateur U12 Fulwood Amateurs U12\nCompetition: CC\nSource: FA Full-Time
 END:VEVENT
 BEGIN:VEVENT
-UID:fulltime-30935172@boys-sports-calendar
-DTSTAMP:20260923T052608Z
+UID:fulltime-30952531@boys-sports-calendar
+DTSTAMP:20260924T052610Z
 DTSTART;TZID=Europe/London:20261025T120000
 DTEND;TZID=Europe/London:20261025T133000
-SUMMARY:HOME v Storeys of Lancaster U12
+SUMMARY:HOME v Carnforth Reds U12
 LOCATION:BARROWS LANE FOOTBALL PITCH
-DESCRIPTION:Heysham Blue Star U12 v Storeys of Lancaster U12\nSource: FA Full-Time
+DESCRIPTION:Heysham Blue Star U12 v Carnforth Reds U12\nSource: FA Full-Time
 END:VEVENT
 END:VCALENDAR
