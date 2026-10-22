@@ -661,7 +661,32 @@ def read_existing_events(path):
             f"Cannot use Full-Time fallback: {path} has no events"
         )
 
+    age_group = "U12" if path.name == OUTPUT_THOMAS.name else "U9"
+    for event in events:
+        summary_index = next(
+            (index for index, line in enumerate(event)
+             if line.startswith("SUMMARY:")),
+            None,
+        )
+        if summary_index is None:
+            continue
+
+        summary = get_prop("\n".join(event), "SUMMARY")
+        if summary.startswith("HBS "):
+            continue
+
+        match = re.match(r"^(HOME|AWAY)\s+v\s+(.+)$", summary)
+        if match:
+            new_summary = bluestars_title(
+                age_group, match.group(1), match.group(2)
+            )
+            event[summary_index] = f"SUMMARY:{escape_ics(new_summary)}"
+
     return events
+
+
+def bluestars_title(age_group, home_away, opponent):
+    return f"HBS {age_group} — {home_away} vs {opponent}"
 
 
 def create_fulltime_events(
@@ -695,9 +720,8 @@ def create_fulltime_events(
         # TITLE
         # ----------------------------------------------------
 
-        summary = (
-            f"{home_away} v {opponent}"
-        )
+        age_group = "U12" if fixture["boy"] == "Thomas" else "U9"
+        summary = bluestars_title(age_group, home_away, opponent)
 
         description_lines = [
             f"{fixture['home']} v "
@@ -1050,18 +1074,28 @@ def get_lrgs_events(age_group):
         # Add HOME / AWAY to title
         # ----------------------------------------------------
 
-        if location_status in {
-            "HOME",
-            "AWAY"
-        }:
+        team_match = re.search(
+            rf"\b{re.escape(age_group)}[ABC]?\b",
+            clean,
+            flags=re.I,
+        )
+        team_label = team_match.group(0).upper() if team_match else age_group
+        detail = clean
+        if team_match:
+            detail = (
+                clean[:team_match.start()]
+                + clean[team_match.end():]
+            ).strip(" -–—")
+        detail = " ".join(detail.split())
 
-            title = (
-                f"{location_status} - {clean}"
-            )
-
+        if location_status in {"HOME", "AWAY"}:
+            if re.match(r"^vs\b", detail, flags=re.I):
+                title = f"LRGS {team_label} — {location_status} {detail}"
+            else:
+                title = f"LRGS {team_label} — {location_status} — {detail}"
         else:
-
-            title = clean
+            detail = re.sub(r"^vs\s+", "", detail, flags=re.I)
+            title = f"LRGS {team_label} — {detail}"
 
         # ----------------------------------------------------
         # Description
