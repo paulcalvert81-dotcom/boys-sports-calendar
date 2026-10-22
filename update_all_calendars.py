@@ -24,6 +24,7 @@ LRGS_URL = (
 )
 
 OUTPUT_LUCAS = Path("u14s-lrgs-rugby.ics")
+OUTPUT_LRGS_U12 = Path("u12s-lrgs-rugby.ics")
 OUTPUT_THOMAS = Path("u12-bluestars.ics")
 OUTPUT_HARRY = Path("u9-bluestars.ics")
 OUTPUT_COMBINED = Path("calendar.ics")
@@ -140,13 +141,12 @@ def write_calendar(
     calendar_name,
     description=""
 ):
-    path.write_text(
+    path.write_bytes(
         create_calendar(
             events,
             calendar_name,
             description
-        ),
-        encoding="utf-8"
+        ).encode("utf-8")
     )
 
     print(
@@ -639,6 +639,31 @@ def get_fulltime_fixtures():
     return fixtures
 
 
+def read_existing_events(path):
+    """Load last-published VEVENT blocks when Full-Time is unavailable."""
+    if not path.exists():
+        raise RuntimeError(
+            f"Cannot use Full-Time fallback: {path} does not exist"
+        )
+
+    text = unfold_ics(path.read_text(encoding="utf-8"))
+    events = [
+        ["BEGIN:VEVENT"]
+        + [line for line in block.strip().split("\n") if line]
+        + ["END:VEVENT"]
+        for block in re.findall(
+            r"BEGIN:VEVENT(.*?)END:VEVENT", text, flags=re.S
+        )
+    ]
+
+    if not events:
+        raise RuntimeError(
+            f"Cannot use Full-Time fallback: {path} has no events"
+        )
+
+    return events
+
+
 def create_fulltime_events(
     fixtures
 ):
@@ -812,7 +837,7 @@ def parse_lrgs_datetime(
 # LRGS / LUCAS
 # ============================================================
 
-def get_lucas_events():
+def get_lrgs_events(age_group):
 
     print()
     print("=" * 70)
@@ -848,11 +873,11 @@ def get_lucas_events():
     # --------------------------------------------------------
     # IMPORTANT:
     #
-    # Find EVERY U14 Rugby event.
+    # Find EVERY event for the requested age group.
     # Do not filter by opponent name.
     # --------------------------------------------------------
 
-    source_u14 = []
+    source_events = []
 
     for block in re.findall(
         r"BEGIN:VEVENT(.*?)END:VEVENT",
@@ -869,7 +894,7 @@ def get_lucas_events():
             summary.lower()
         )
 
-        if "u14" not in summary_lower:
+        if age_group.lower() not in summary_lower:
             continue
 
         is_rugby = (
@@ -895,24 +920,22 @@ def get_lucas_events():
         if not start:
 
             raise RuntimeError(
-                "LRGS contains a U14 Rugby "
+                f"LRGS contains a {age_group} Rugby "
                 "event with an unreadable "
                 f"DTSTART:\n{summary}"
             )
 
-        source_u14.append({
+        source_events.append({
             "block": block,
             "summary": summary,
             "start": start,
         })
 
-    source_count = len(
-        source_u14
-    )
+    source_count = len(source_events)
 
     print()
     print(
-        f"LRGS U14 rugby events found: "
+        f"LRGS {age_group} rugby events found: "
         f"{source_count}"
     )
 
@@ -923,7 +946,7 @@ def get_lucas_events():
     events = []
     fixture_info = []
 
-    for source_event in source_u14:
+    for source_event in source_events:
 
         block = source_event[
             "block"
@@ -948,30 +971,14 @@ def get_lucas_events():
         clean = summary
 
         replacements = [
-            (
-                "Rugby Union Boys-U14A",
-                "U14A"
-            ),
-            (
-                "Rugby Union Boys-U14B",
-                "U14B"
-            ),
-            (
-                "Rugby Union Boys-U14",
-                "U14"
-            ),
-            (
-                "Rugby 7S Boys-U14A",
-                "U14A 7S"
-            ),
-            (
-                "Rugby 7S Boys-U14B",
-                "U14B 7S"
-            ),
-            (
-                "Rugby 7S Boys-U14",
-                "U14 7S"
-            ),
+            (f"Rugby Union Boys-{age_group}A", f"{age_group}A"),
+            (f"Rugby Union Boys-{age_group}B", f"{age_group}B"),
+            (f"Rugby Union Boys-{age_group}C", f"{age_group}C"),
+            (f"Rugby Union Boys-{age_group}", age_group),
+            (f"Rugby 7S Boys-{age_group}A", f"{age_group}A 7S"),
+            (f"Rugby 7S Boys-{age_group}B", f"{age_group}B 7S"),
+            (f"Rugby 7S Boys-{age_group}C", f"{age_group}C 7S"),
+            (f"Rugby 7S Boys-{age_group}", f"{age_group} 7S"),
         ]
 
         for old, new in replacements:
@@ -1107,8 +1114,9 @@ def get_lucas_events():
                 )
             ).strip("-").lower()
 
+        uid_prefix = "lucas" if age_group == "U14" else f"lrgs-{age_group.lower()}"
         uid = (
-            f"lucas-{uid_key}"
+            f"{uid_prefix}-{uid_key}"
             "@boys-sports-calendar"
         )
 
@@ -1174,12 +1182,12 @@ def get_lucas_events():
 
     print()
     print(
-        f"LRGS U14 events to import: "
+        f"LRGS {age_group} events to import: "
         f"{imported_count}"
     )
 
     print(
-        f"LRGS U14 events skipped: "
+        f"LRGS {age_group} events skipped: "
         f"{skipped_count}"
     )
 
@@ -1188,7 +1196,7 @@ def get_lucas_events():
         print()
         print("=" * 70)
         print(
-            "ERROR: LRGS U14 EVENT COUNT MISMATCH"
+            f"ERROR: LRGS {age_group} EVENT COUNT MISMATCH"
         )
         print("=" * 70)
 
@@ -1209,7 +1217,7 @@ def get_lucas_events():
         print("=" * 70)
 
         raise RuntimeError(
-            "LRGS U14 event count mismatch"
+            f"LRGS {age_group} event count mismatch"
         )
 
     # --------------------------------------------------------
@@ -1222,7 +1230,7 @@ def get_lucas_events():
 
     print()
     print("=" * 70)
-    print("LUCAS U14 RUGBY FIXTURES")
+    print(f"LRGS {age_group} RUGBY FIXTURES")
     print("=" * 70)
 
     for number, fixture in enumerate(
@@ -1246,7 +1254,7 @@ def get_lucas_events():
     print("=" * 70)
 
     print(
-        f"Lucas events found: "
+        f"LRGS {age_group} events found: "
         f"{len(events)}"
     )
 
@@ -1269,47 +1277,39 @@ def main():
     # FULL-TIME
     # --------------------------------------------------------
 
-    fulltime = get_fulltime_fixtures()
+    try:
+        fulltime = get_fulltime_fixtures()
 
-    harry_fixtures = [
-        fixture
-        for fixture in fulltime
-        if fixture["boy"] == "Harry"
-    ]
+        harry_fixtures = [
+            fixture for fixture in fulltime
+            if fixture["boy"] == "Harry"
+        ]
+        thomas_fixtures = [
+            fixture for fixture in fulltime
+            if fixture["boy"] == "Thomas"
+        ]
 
-    thomas_fixtures = [
-        fixture
-        for fixture in fulltime
-        if fixture["boy"] == "Thomas"
-    ]
+        if not harry_fixtures or not thomas_fixtures:
+            raise RuntimeError(
+                "Full-Time did not return fixtures for both boys"
+            )
 
-    if not harry_fixtures:
-
-        raise RuntimeError(
-            "No Harry U9 fixtures found. "
-            "Refusing to update calendars."
-        )
-
-    if not thomas_fixtures:
-
-        raise RuntimeError(
-            "No Thomas U12 fixtures found. "
-            "Refusing to update calendars."
-        )
-
-    harry_events = create_fulltime_events(
-        harry_fixtures
-    )
-
-    thomas_events = create_fulltime_events(
-        thomas_fixtures
-    )
+        harry_events = create_fulltime_events(harry_fixtures)
+        thomas_events = create_fulltime_events(thomas_fixtures)
+    except Exception as error:
+        print()
+        print("WARNING: FA Full-Time is unavailable:")
+        print(f"  {error}")
+        print("Keeping the last published Bluestars feeds for this run.")
+        thomas_events = read_existing_events(OUTPUT_THOMAS)
+        harry_events = read_existing_events(OUTPUT_HARRY)
 
     # --------------------------------------------------------
     # LRGS
     # --------------------------------------------------------
 
-    lucas_events = get_lucas_events()
+    lucas_events = get_lrgs_events("U14")
+    lrgs_u12_events = get_lrgs_events("U12")
 
     # --------------------------------------------------------
     # INDIVIDUAL CALENDARS
@@ -1320,6 +1320,13 @@ def main():
         lucas_events,
         "U14s LRGS Rugby",
         "Lucas U14 rugby fixtures from LRGS"
+    )
+
+    write_calendar(
+        OUTPUT_LRGS_U12,
+        lrgs_u12_events,
+        "U12s LRGS Rugby",
+        "LRGS U12 rugby fixtures"
     )
 
     write_calendar(
@@ -1344,13 +1351,14 @@ def main():
         lucas_events
         + thomas_events
         + harry_events
+        + lrgs_u12_events
     )
 
     write_calendar(
         OUTPUT_COMBINED,
         combined,
         "Boys Sports Calendar",
-        "Lucas, Thomas and Harry sports fixtures"
+        "LRGS U12/U14, Thomas and Harry sports fixtures"
     )
 
     # --------------------------------------------------------
@@ -1365,6 +1373,11 @@ def main():
     print(
         f"U14s LRGS Rugby : "
         f"{len(lucas_events)}"
+    )
+
+    print(
+        f"U12s LRGS Rugby : "
+        f"{len(lrgs_u12_events)}"
     )
 
     print(

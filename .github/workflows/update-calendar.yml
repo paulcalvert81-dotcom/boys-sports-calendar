@@ -84,6 +84,9 @@ jobs:
           echo -n "U14s LRGS Rugby: "
           grep -c "^BEGIN:VEVENT" u14s-lrgs-rugby.ics || true
 
+          echo -n "U12s LRGS Rugby: "
+          grep -c "^BEGIN:VEVENT" u12s-lrgs-rugby.ics || true
+
           echo -n "U12 Bluestars:   "
           grep -c "^BEGIN:VEVENT" u12-bluestars.ics || true
 
@@ -102,6 +105,7 @@ jobs:
 
           git add -f \
             u14s-lrgs-rugby.ics \
+            u12s-lrgs-rugby.ics \
             u12-bluestars.ics \
             u9-bluestars.ics
 
