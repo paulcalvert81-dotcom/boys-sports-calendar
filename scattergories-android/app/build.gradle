@@ -1,0 +1,14 @@
+plugins {
+    id 'com.android.application'
+}
+android {
+    namespace 'uk.co.pauls.scattergories'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'uk.co.pauls.scattergories'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+    }
+}
